@@ -105,7 +105,7 @@ class Console:
 				words = [words]
 			
 			self.set_running_command(command_word)
-			return CommandHandler.callv(c[0], words)
+			return c[0](*words)
 		
 		if len(words) == 0: # se for só command_word ou seja n tem arg
 			if command_word in self.aliases: # se loop de alias funciona, por que de alias nao?
