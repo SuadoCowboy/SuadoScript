@@ -385,14 +385,17 @@ class Console:
 
 		self.running_commands = temp
 
+	def run(self):
+		self.running = True
+		while self.running:
+			command = input('>')
+			if command == 'quit':
+				self.running = False
+				break
+			self.update()
+			for line in command.split(self.separator):
+				self.execute(command)
+
 if __name__ == '__main__':
 	console = Console()
-
-	running = True
-	while running:
-		command = input('>')
-		if command == 'quit':
-			running = False
-			break
-		console.update()
-		console.execute(command)
+	console.run()
