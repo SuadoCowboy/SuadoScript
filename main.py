@@ -390,7 +390,7 @@ class Console:
 		self.running_commands = temp
 
 	def run(self):
-		print(f'{NAME} (V{VERSION}) Python {sys.version} System {sys.version_info}')
+		print(f'{NAME} V{VERSION} Python {sys.version} System {sys.version_info()}')
 		self.running = True
 		while self.running:
 			command = input('>')
