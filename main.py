@@ -88,7 +88,7 @@ class Console:
 				if command_word in self.valid_commands:
 					pass
 				else:
-					if words[i].starswith(self.return_char):
+					if words[i].startswith(self.return_char):
 						for cc in self.incrementvariables.copy():
 							if words[i] == self.return_char + cc:
 								words[i] = str(self.incrementvariables[cc].get_value())
@@ -109,7 +109,7 @@ class Console:
 		
 		if len(words) == 0: # se for só command_word ou seja n tem arg
 			if command_word in self.aliases: # se loop de alias funciona, por que de alias nao?
-				if command_word.starswith(self.plus_char) and len(command_word) != len(self.plus_char):
+				if command_word.startswith(self.plus_char) and len(command_word) != len(self.plus_char):
 					temp = command_word
 					for i in range(len(self.plus_char)):
 						temp[i] = ''
@@ -119,7 +119,7 @@ class Console:
 					else:
 						self.toggle_commands.append(temp)
 						temp = None
-				elif command_word.starswith(self.minus_char) and len(command_word) != len(self.minus_char):
+				elif command_word.startswith(self.minus_char) and len(command_word) != len(self.minus_char):
 					temp = command_word
 					for i in range(len(self.minus_char)):
 						temp[i] = ''
@@ -193,7 +193,7 @@ class Console:
 		args.pop(0)
 		
 		alias_name_plus = None
-		if alias_name.starswith(self.plus_char) and len(self.plus_char) != len(alias_name):
+		if alias_name.startswith(self.plus_char) and len(self.plus_char) != len(alias_name):
 			alias_name_plus = alias_name
 			for i in range(len(self.plus_char)):
 				alias_name_plus[i] = ''
@@ -205,7 +205,7 @@ class Console:
 		args = self.split_alias(args)
 		
 		for arg in args: # add -arg for each +arg in alias to the negative alias_name array
-			if alias_name_plus != null and arg.startswith(self.plus_char) and len(self.plus_char) != len(arg):
+			if alias_name_plus != None and arg.startswith(self.plus_char) and len(self.plus_char) != len(arg):
 				if ' ' not in arg:
 					temp = arg
 					for i in range(len(self.plus_char)):
