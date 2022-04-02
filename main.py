@@ -98,6 +98,9 @@ class Console:
 		self.exec_cfg(self.cfg_configfile)
 
 	def plugin_load(self, file_path: str):
+		if not file_path.endswith('.py'):
+			file_path += '.py'
+		
 		if not os.path.exists(file_path):
 			file_path = os.path.join(self.plugins_path, file_path)
 			if not os.path.exists(file_path):
