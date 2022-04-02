@@ -31,8 +31,8 @@ class Console:
 				"commands": [self.get_commands,False, [], "commands - Show a list of commands."],
 				"help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
 				"echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
-				"exec": [self._exec,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
-				"clear": [self.clear,False, [], "clear - clears the console output screen."],
+				"exec": [self.exec_cfg,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
+				#"clear": [self.clear,False, [], "clear - clears the console output screen."],
 				"alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
 				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
 				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
@@ -188,6 +188,33 @@ class Console:
 		
 		return [str('Unknown command: "', command_word, '"'), self.colors['console']['output_error_font_color']]
 
+	def alias(self, args: list):
+		alias_name = args[0]
+		args.pop(0)
+		
+		alias_name_plus = None
+		if alias_name.starswith(self.plus_char) and len(self.plus_char) != len(alias_name):
+			alias_name_plus = alias_name
+			for i in range(len(self.plus_char)):
+				alias_name_plus[i] = ''
+			if self.minus_char+alias_name_plus in self.aliases:
+				pass
+			else:
+				self.aliases[self.minus_char+alias_name_plus] = []
+		
+		args = self.split_alias(args)
+		
+		for arg in args: # add -arg for each +arg in alias to the negative alias_name array
+			if alias_name_plus != null and arg.startswith(self.plus_char) and len(self.plus_char) != len(arg):
+				if ' ' not in arg:
+					temp = arg
+					for i in range(len(self.plus_char)):
+						temp[i] = ''
+					if arg not in self.aliases[self.minus_char+alias_name_plus]:
+						self.aliases[self.minus_char+alias_name_plus].append(self.minus_char+temp)
+		
+		self.aliases[alias_name] = args
+
 	def get_aliases(self):
 		output = ''
 		index = 0
@@ -213,6 +240,18 @@ class Console:
 			else:
 				output += alias + '\n'
 			index += 1
+		return output
+
+	def get_commands(self):
+		output = ''
+		index = 0
+		for command in self.valid_commands:
+			if self.valid_commands[command][3] != None:
+				if index == len(self.valid_commands)-1:
+					output += self.valid_commands[command][3]
+				else:
+					output += self.valid_commands[command][3] + '\n'
+				index += 1
 		return output
 
 	def update(self):
