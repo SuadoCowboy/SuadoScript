@@ -186,7 +186,7 @@ class Console:
 					self.loop_aliases_on.append(command_word)
 				return
 		
-		return [str('Unknown command: "', command_word, '"'), self.colors['console']['output_error_font_color']]
+		return ['Unknown command: "' + command_word + '"', self.colors['output_error_font_color']]
 
 	def alias(self, args: list):
 		alias_name = args[0]
