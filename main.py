@@ -56,7 +56,7 @@ class Console:
 		self.cfg_configfile = 'config.cfg'
 		
 		self.plugins_path = convert_path(plugins_path)
-		self.plugins = []
+		self.plugins = {}
 
 		self.separator = separator
 		self.alias_separator = '&&'
