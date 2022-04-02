@@ -20,11 +20,31 @@ def check_type(string: str, type):
 	return False
 
 class Console:
-	def __init__(self, separator: str=';', cfg_path: str='./cfg'):
+	def __init__(self, separator: str=';', cfg_path: str='./cfg', use_default_commands: bool=True):
 		#self.historic = []
 		#self.commandhistoricline = 0
 		#self.tab_selected = 0
-				
+
+		if use_default_commands:
+			self.valid_commands = {
+				# command_name(str) : [function(FunctionType), is_multiple_args(bool), list_of_args_needed(list), description(str)]
+				"commands": [console.commands,False, [], "commands - Show a list of commands."],
+				"help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
+				"echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
+				"exec": [self._exec,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
+				"clear": [self.clear,False, [], "clear - clears the console output screen."],
+				"alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
+				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
+				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
+				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."],
+				#"incrementvar": ["incrementvar",False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.return_char, "<var_name>.")],
+				#"toggleconsole": ["toggleconsole",False, [], None],
+				#"togglemenu": ["togglemenu",False, [], None],
+				"aliases": [self.aliases,False,[], "aliases - Show a list of aliases."]
+			}
+		else:
+			self.valid_commands = {}
+
 		self.colors = {
 			'output_error_font_color':(255,0,0),
 			'output_font_color':(255,255,255)
@@ -61,17 +81,17 @@ class Console:
 			c = self.valid_commands[command_word]
 			if c[1] == False: # is_multiple_args check
 				if len(words) != len(c[2]): # da erro se estiver faltando argumentos ou tiver muitos argumentos
-					return [str('Failure executing command "', command_word, '" expected ', len(c[2]), ' parameters'), self.colors['output_error_font_color']]
+					return ['Failure executing command "' + command_word + '" expected ' + str(len(c[2])) + ' parameters', self.colors['output_error_font_color']]
 			
 			checktype = None
 			for i in range(len(words)):
 				if command_word in self.returnchar_valid_commands:
 					pass
 				else:
-					if words[i].begins_with(Global.return_char):
-						for cc in Global.incrementvariables.duplicate():
-							if words[i] == str(Global.return_char, cc):
-								words[i] = str(Global.incrementvariables[cc].get_value())
+					if words[i].begins_with(self.return_char):
+						for cc in self.incrementvariables.duplicate():
+							if words[i] == self.return_char + cc:
+								words[i] = self.incrementvariables[cc].get_value())
 					
 				if c[1] == True:
 					checktype = check_type(words[i], c[2][0])
@@ -79,94 +99,94 @@ class Console:
 					checktype = check_type(words[i], c[2][i])
 					
 				if not checktype:
-					return [str('Failure executing command "', command_word, '" parameter ', i+1, ' "', words[i], '" is the wrong type'), Global.ui_custom['console']['output_error_font_color']]
+					return ['Failure executing command "' + command_word + '" parameter ' + str(i+1) + ' "' + words[i] + '" is the wrong type', self.colors['output_error_font_color']]
 				
 			if c[1] == True:
 				words = [words]
 			
-			Global.set_running_command(command_word)
+			self.set_running_command(command_word)
 			return CommandHandler.callv(c[0], words)
 		
 		if len(words) == 0: # se for só command_word ou seja n tem arg
-			if command_word in Global.aliases: # se loop de alias funciona, por que de alias nao?
-				if command_word.begins_with(Global.plus_char) and len(command_word) != len(Global.plus_char):
+			if command_word in self.aliases: # se loop de alias funciona, por que de alias nao?
+				if command_word.begins_with(self.plus_char) and len(command_word) != len(self.plus_char):
 					temp = command_word
-					for i in range(len(Global.plus_char)):
+					for i in range(len(self.plus_char)):
 						temp[i] = ''
 					
-					if temp in Global.toggle_commands:
+					if temp in self.toggle_commands:
 						pass
 					else:
-						Global.toggle_commands.append(temp)
+						self.toggle_commands.append(temp)
 						temp = None
-				elif command_word.begins_with(Global.minus_char) and len(command_word) != len(Global.minus_char):
+				elif command_word.begins_with(self.minus_char) and len(command_word) != len(self.minus_char):
 					temp = command_word
-					for i in range(len(Global.minus_char)):
+					for i in range(len(self.minus_char)):
 						temp[i] = ''
 						
-					if temp in Global.toggle_commands:
-						Global.toggle_commands.erase(temp)
-						Global._on_toggle_commands_erased(temp)
+					if temp in self.toggle_commands:
+						self.toggle_commands.erase(temp)
+						self._on_toggle_commands_erased(temp)
 						temp = None
 				
-				for i in range(len(Global.aliases[command_word])):
+				for i in range(len(self.aliases[command_word])):
 					args = None
-					if Global.return_char in Global.aliases[command_word][i]:
+					if self.return_char in self.aliases[command_word][i]:
 						new_command = ''
 						ignore_until = -1
-						for c_i in range(len(Global.aliases[command_word][i])):
+						for c_i in range(len(self.aliases[command_word][i])):
 							if ignore_until < c_i:
-								if Global.aliases[command_word][i][c_i] == Global.return_char:
+								if self.aliases[command_word][i][c_i] == self.return_char:
 									temp = ''
-									end_index = Global.aliases[command_word][i].find(' ', c_i)
+									end_index = self.aliases[command_word][i].find(' ', c_i)
 									
 									if end_index != -1:
 										ignore_until = c_i-1
 										for c_ii in range(end_index-c_i):
-											temp += Global.aliases[command_word][i][c_i+c_ii]
+											temp += self.aliases[command_word][i][c_i+c_ii]
 											ignore_until += 1
 									else:
-										end_index = len(Global.aliases[command_word][i])-c_i
+										end_index = len(self.aliases[command_word][i])-c_i
 										ignore_until = c_i-1
 										for c_ii in range(end_index):
-											temp += Global.aliases[command_word][i][c_i+c_ii]
+											temp += self.aliases[command_word][i][c_i+c_ii]
 											ignore_until += 1
 									
-									for ivar in Global.incrementvariables:
-										if Global.return_char+ivar == temp:
-											new_command += str(Global.incrementvariables[ivar].get_value())
+									for ivar in self.incrementvariables:
+										if self.return_char+ivar == temp:
+											new_command += str(self.incrementvariables[ivar].get_value())
 											break
 								else:
-									new_command += Global.aliases[command_word][i][c_i]
+									new_command += self.aliases[command_word][i][c_i]
 						
 						args = new_command
 					else:
-						args = Global.aliases[command_word][i]
+						args = self.aliases[command_word][i]
 					
 					execute(args)
-					Global.set_running_command(args)
-				Global.set_running_command(command_word)
+					set_running_command(args)
+				set_running_command(command_word)
 				return
 			
-			for c in Global.incrementvariables.duplicate():
+			for c in self.incrementvariables.duplicate():
 				if c == command_word:
-					Global.incrementvariables[c].increment()
+					self.incrementvariables[c].increment()
 					return
 				
-				if Global.return_char+c == command_word:
-					out = handle_input(str(Global.incrementvariables[c].get_value()))
-					if out == None or out[1] == Global.ui_custom['console']['output_error_font_color']: # no momento é a unica forma de eu pegar se for erro...
+				if self.return_char+c == command_word:
+					out = handle_input(str(self.incrementvariables[c].get_value()))
+					if out == None or out[1] == self.colors['output_error_font_color']: # no momento é a unica forma de eu pegar se for erro...
 						return # vai retornar se for erro
 					return out # se nao for erro, vai retornar a str
 			
-			if command_word in Global.loop_aliases:
-				if command_word in Global.loop_aliases_on:
-					Global.loop_aliases_on.erase(command_word)
+			if command_word in self.loop_aliases:
+				if command_word in self.loop_aliases_on:
+					self.loop_aliases_on.erase(command_word)
 				else:
-					Global.loop_aliases_on.append(command_word)
+					self.loop_aliases_on.append(command_word)
 				return
 		
-		return [str('Unknown command: "', command_word, '"'), Global.ui_custom['console']['output_error_font_color']]
+		return [str('Unknown command: "', command_word, '"'), self.colors['console']['output_error_font_color']]
 
 	def update(self):
 		for command in self.loop_aliases_on:
@@ -193,97 +213,89 @@ class Console:
 
 		# todo: pass the text to pygame window
 
-	def echo(args):
-		output = ""
+	def help(self, command: str):
+		if command in self.valid_commands:
+			if self.valid_commands[command][3] == None:
+				return command + ' does not have a description.'
+			return self.valid_commands[command][3]
+		return command + ' does not exists.'
+
+	def echo(self, args):
+		output = ''
 		for i in args:
 			output += str(i) + ' '
-		return output
+		return output[:-1]
+	
+	def set_running_command(self, command: str):
+		if command not in self.running_commands:
+			self.running_commands.append(command)
 
-def split_alias(console: Console, args: str):
-	temp = ''
-	for i in args:
-		temp += str(i).lstrip().rstrip() + ' '
-		
-	args = temp.split(console.alias_separator)
-	for i in range(len(args)):
-		args[i] = args[i].lstrip().rstrip()
-	
-	return args
-
-def exec_cfg(console: Console, file_path: str):
-	file_path = console.cfg_path+'/'+file_path
-	
-	if not os.path.exists(file_path):
-		if os.path.exists(file_path+'.cfg'):
-			file_path += '.cfg'
-		else:
-			return ['File does not exists', console.colors['output_error_font_color']]
-	
-	with open(file_path, 'r') as f:
-		content = f.readlines().split('\n')
-	
-	for i in range(len(content)):
-		if content[i].startswith('//'):
-			content.pop(i)
-			
-		index = 0
-		bar_index = -1
+	def split_alias(self, args: str):
 		temp = ''
-		for c in content[i]:
-			if c == '/':
-				if bar_index != -1:
-					if index == bar_index+1:
-						break
-				else:
-					if len(content[i])-1 != index:
-						if content[i][index+1] != '/':
-							temp += c
-					else:
-						temp += c
-				bar_index = index
+		for i in args:
+			temp += str(i).lstrip().rstrip() + ' '
+			
+		args = temp.split(self.alias_separator)
+		for i in range(len(args)):
+			args[i] = args[i].lstrip().rstrip()
+		
+		return args
+
+	def exec_cfg(self, file_path: str):
+		file_path = self.cfg_path+'/'+file_path
+		
+		if not os.path.exists(file_path):
+			if os.path.exists(file_path+'.cfg'):
+				file_path += '.cfg'
 			else:
-				temp += c
-			index += 1
-		content[i] = temp.rstrip()
-	
-	for line in content:
-		console.execute(line)
+				return ['File does not exists', self.colors['output_error_font_color']]
+		
+		with open(file_path, 'r') as f:
+			content = f.readlines().split('\n')
+		
+		for i in range(len(content)):
+			if content[i].startswith('//'):
+				content.pop(i)
+				
+			index = 0
+			bar_index = -1
+			temp = ''
+			for c in content[i]:
+				if c == '/':
+					if bar_index != -1:
+						if index == bar_index+1:
+							break
+					else:
+						if len(content[i])-1 != index:
+							if content[i][index+1] != '/':
+								temp += c
+						else:
+							temp += c
+					bar_index = index
+				else:
+					temp += c
+				index += 1
+			content[i] = temp.rstrip()
+		
+		for line in content:
+			self.execute(line)
 
-def check_toggle_commands(console: Console):
-	for i in console.toggle_commands:
-		console.execute(console.plus_char+i)
+	def check_toggle_commands(self):
+		for i in self.toggle_commands:
+			self.execute(self.plus_char+i)
 
-def command_just_ran(console: Console, command):
-	if command in console.running_commands:
-		return True
-	return False
+	def command_just_ran(self, command):
+		if command in self.running_commands:
+			return True
+		return False
 
-def erase_running_commands(console: Console):
-	temp = []
-	for command in console.ignore_commands:
-		if command in console.running_commands:
-			temp.append(command)
+	def erase_running_commands(self):
+		temp = []
+		for command in self.ignore_commands:
+			if command in self.running_commands:
+				temp.append(command)
 
-	console.running_commands = temp
-
-def set_running_command(console: Console, command):
-	if command not in running_commands:
-		console.running_commands.append(command)
+		self.running_commands = temp
 
 if __name__ == '__main__':
-	valid_commands = {
-		# command_name(str) : [function(str), is_multiple_args(bool), list_of_args_needed(Array), description(str)]
-		"commands": [commands,False, [], "commands - Show a list of commands."],
-		"help": [console._help,False, [str], "help <command> - Shows the description of the specified command."],
-		"echo": [console.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
-		"exec": [console._exec,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
-		"clear": [clear,False, [], "clear - clears the console output screen."],
-		"alias": [alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
-		"loop_alias": ["loop_alias",True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
-		#"bind": ["bind",True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
-		#"unbind": ["unbind",False, [str], "unbind <key> - Erases the keybind."],
-		#"incrementvar": ["incrementvar",False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", Global.return_char, "<var_name>.")],
-		#"toggleconsole": ["toggleconsole",False, [], None],
-		#"togglemenu": ["togglemenu",False, [], None],
-		"aliases": ["aliases",False,[], "aliases - Show a list of aliases."]
-	}
+	console = Console()
