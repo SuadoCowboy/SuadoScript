@@ -40,26 +40,6 @@ class Console:
 		#self.commandhistoricline = 0
 		#self.tab_selected = 0
 
-		if use_default_commands:
-			self.valid_commands = {
-				# command_name(str) : [function(FunctionType), is_multiple_args(bool), list_of_args_needed(list), description(str)]
-				"commands": [self.get_commands,False, [], "commands - Show a list of commands."],
-				"help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
-				"echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
-				"exec": [self.exec_cfg,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
-				#"clear": [self.clear,False, [], "clear - clears the console output screen."],
-				"alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
-				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
-				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
-				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."],
-				"incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.returnchar, "<var_name>.")],
-				#"toggleconsole": ["toggleconsole",False, [], None],
-				#"togglemenu": ["togglemenu",False, [], None],
-				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."]
-			}
-		else:
-			self.valid_commands = {}
-
 		self.colors = {
 			'output_error_font_color':(255,0,0),
 			'output_font_color':(255,255,255)
@@ -85,6 +65,28 @@ class Console:
 		self.running_commands = []
 		self.ignore_commands = []
 		self.toggle_commands = []
+
+		if use_default_commands:
+			self.valid_commands = {
+				# command_name(str) : [function(FunctionType), is_multiple_args(bool), list_of_args_needed(list), description(str)]
+				"commands": [self.get_commands,False, [], "commands - Show a list of commands."],
+				"help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
+				"echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
+				"exec": [self.exec_cfg,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
+				#"clear": [self.clear,False, [], "clear - clears the console output screen."],
+				"alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
+				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
+				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
+				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."],
+				"incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.returnchar, "<var_name>.")],
+				#"toggleconsole": ["toggleconsole",False, [], None],
+				#"togglemenu": ["togglemenu",False, [], None],
+				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."]
+			}
+		else:
+			self.valid_commands = {}
+
+	def add_command(self, name, function, is_multiple_args, list_of_args)
 
 	def handle_input(self, text):
 		words = text.lstrip().rstrip().split()
