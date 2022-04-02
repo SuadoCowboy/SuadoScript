@@ -389,6 +389,7 @@ class Console:
 		self.running_commands = temp
 
 	def run(self):
+		print(NAME, VERSION)
 		self.running = True
 		while self.running:
 			command = input('>')
