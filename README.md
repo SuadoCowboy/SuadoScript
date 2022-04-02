@@ -3,7 +3,7 @@ Recreating SCCP(again) using my gdscript version
 
 Created by Suado Cowboy
 
-This project is inspired by the console of
+This project is inspired in the console of
 Team Fortress 2, A game made by Valve Corp.
 
 The "plugins" folder is for python scripts that
