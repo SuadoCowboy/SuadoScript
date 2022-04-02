@@ -21,6 +21,10 @@ def check_type(string: str, type):
 
 class Console:
 	def __init__(self, separator: str=';', cfg_path: str='./cfg'):
+		#self.historic = []
+		#self.commandhistoricline = 0
+		#self.tab_selected = 0
+				
 		self.colors = {
 			'output_error_font_color':(255,0,0),
 			'output_font_color':(255,255,255)
@@ -61,7 +65,7 @@ class Console:
 			
 			checktype = None
 			for i in range(len(words)):
-				if command_word in CommandHandler.returnchar_valid_commands:
+				if command_word in self.returnchar_valid_commands:
 					pass
 				else:
 					if words[i].begins_with(Global.return_char):
@@ -94,7 +98,7 @@ class Console:
 						pass
 					else:
 						Global.toggle_commands.append(temp)
-						temp = null
+						temp = None
 				elif command_word.begins_with(Global.minus_char) and len(command_word) != len(Global.minus_char):
 					temp = command_word
 					for i in range(len(Global.minus_char)):
@@ -103,10 +107,10 @@ class Console:
 					if temp in Global.toggle_commands:
 						Global.toggle_commands.erase(temp)
 						Global._on_toggle_commands_erased(temp)
-						temp = null
+						temp = None
 				
 				for i in range(len(Global.aliases[command_word])):
-					args = null
+					args = None
 					if Global.return_char in Global.aliases[command_word][i]:
 						new_command = ''
 						ignore_until = -1
@@ -151,7 +155,7 @@ class Console:
 				
 				if Global.return_char+c == command_word:
 					out = handle_input(str(Global.incrementvariables[c].get_value()))
-					if out == null or out[1] == Global.ui_custom['console']['output_error_font_color']: # no momento é a unica forma de eu pegar se for erro...
+					if out == None or out[1] == Global.ui_custom['console']['output_error_font_color']: # no momento é a unica forma de eu pegar se for erro...
 						return # vai retornar se for erro
 					return out # se nao for erro, vai retornar a str
 			
@@ -188,6 +192,12 @@ class Console:
 			text_color = self.colors['output_font_color']
 
 		# todo: pass the text to pygame window
+
+	def echo(args):
+		output = ""
+		for i in args:
+			output += str(i) + ' '
+		return output
 
 def split_alias(console: Console, args: str):
 	temp = ''
@@ -259,3 +269,21 @@ def erase_running_commands(console: Console):
 def set_running_command(console: Console, command):
 	if command not in running_commands:
 		console.running_commands.append(command)
+
+if __name__ == '__main__':
+	valid_commands = {
+		# command_name(str) : [function(str), is_multiple_args(bool), list_of_args_needed(Array), description(str)]
+		"commands": [commands,False, [], "commands - Show a list of commands."],
+		"help": [console._help,False, [str], "help <command> - Shows the description of the specified command."],
+		"echo": [console.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
+		"exec": [console._exec,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
+		"clear": [clear,False, [], "clear - clears the console output screen."],
+		"alias": [alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
+		"loop_alias": ["loop_alias",True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
+		#"bind": ["bind",True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
+		#"unbind": ["unbind",False, [str], "unbind <key> - Erases the keybind."],
+		#"incrementvar": ["incrementvar",False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", Global.return_char, "<var_name>.")],
+		#"toggleconsole": ["toggleconsole",False, [], None],
+		#"togglemenu": ["togglemenu",False, [], None],
+		"aliases": ["aliases",False,[], "aliases - Show a list of aliases."]
+	}
