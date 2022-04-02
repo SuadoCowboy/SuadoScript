@@ -1,4 +1,6 @@
 from importlib import import_module
+from threading import Thread
+from time import sleep
 import os
 import sys
 
@@ -68,6 +70,8 @@ class Console:
 		self.loop_aliases = {}
 		self.loop_aliases_on = []
 
+		self.threads = []
+
 		self.incrementvariables = {}
 
 		self.running_commands = []
@@ -92,12 +96,16 @@ class Console:
 				#"togglemenu": ["togglemenu",False, [], None], # pygame
 				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."],
 				"plugin_load": [self.plugin_load, False, [str], "plugin_load <file_path> - Loads a python script."],
-				"plugin_unload": [self.plugin_unload, False, [str], "plugin_unload <plugin_name> - Removes the plugin commands."]
+				"plugin_unload": [self.plugin_unload, False, [str], "plugin_unload <plugin_name> - Removes the plugin commands."],
+				"wait": [self.wait, False, [float], "wait <seconds> - Stops the line execution for the specified time in seconds."]
 			}
 		else:
 			self.valid_commands = {}
 		
 		self.exec_cfg(self.cfg_configfile)
+
+	def wait(self, seconds: float):
+		sleep(float(seconds))
 
 	def plugin_load(self, file_path: str):
 		if not file_path.endswith('.py'):
@@ -464,15 +472,26 @@ class Console:
 	def quit(self):
 		self.running = False
 
+	def loop_update(self):
+		while self.running:
+			sleep(0.00015)
+			self.update()
+
+	def handle_lines(self, command):
+		for line in command.split(self.separator):
+			self.execute(line)
+
 	def run(self):
 		print(f'{NAME} V{VERSION} (Python {sys.version})')
 		self.running = True
+
+		t = Thread(target=self.loop_update)
+		t.start()
 		while self.running:
 			command = input('>')
 
-			for line in command.split(self.separator):
-				self.execute(line)
-			self.update()
+			self.threads.append(Thread(target=self.handle_lines, args=[command]))
+			self.threads[-1].start()
 
 if __name__ == '__main__':
 	console = Console()

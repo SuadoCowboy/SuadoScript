@@ -1,1 +1,3 @@
-remember to see original SCCP python project to handle alias loops
+see original SCCP python project to handle alias loops
+
+separate output from input
