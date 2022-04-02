@@ -88,10 +88,10 @@ class Console:
 				if command_word in self.returnchar_valid_commands:
 					pass
 				else:
-					if words[i].begins_with(self.return_char):
+					if words[i].starswith(self.return_char):
 						for cc in self.incrementvariables.duplicate():
 							if words[i] == self.return_char + cc:
-								words[i] = self.incrementvariables[cc].get_value())
+								words[i] = str(self.incrementvariables[cc].get_value())
 					
 				if c[1] == True:
 					checktype = check_type(words[i], c[2][0])
@@ -109,7 +109,7 @@ class Console:
 		
 		if len(words) == 0: # se for só command_word ou seja n tem arg
 			if command_word in self.aliases: # se loop de alias funciona, por que de alias nao?
-				if command_word.begins_with(self.plus_char) and len(command_word) != len(self.plus_char):
+				if command_word.starswith(self.plus_char) and len(command_word) != len(self.plus_char):
 					temp = command_word
 					for i in range(len(self.plus_char)):
 						temp[i] = ''
@@ -119,7 +119,7 @@ class Console:
 					else:
 						self.toggle_commands.append(temp)
 						temp = None
-				elif command_word.begins_with(self.minus_char) and len(command_word) != len(self.minus_char):
+				elif command_word.starswith(self.minus_char) and len(command_word) != len(self.minus_char):
 					temp = command_word
 					for i in range(len(self.minus_char)):
 						temp[i] = ''
