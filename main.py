@@ -1,3 +1,4 @@
+from importlib import import_module
 import os
 import sys
 
@@ -14,6 +15,11 @@ def check_type(string: str, type):
 	if type == str:
 		return True
 	return False
+
+def convert_path(path: str, convert_to: str=os.path.sep, separators: list=['\\','/']):
+	for i in separators:
+		path = path.replace(i, convert_to)
+	return path
 
 class IncrementVariable:
 	def __init__(self, value: float, minvalue: float, maxvalue: float, delta: float):
@@ -36,7 +42,7 @@ class IncrementVariable:
 		return self.value
 
 class Console:
-	def __init__(self, separator: str=';', cfg_path: str='./cfg', use_default_commands: bool=True):
+	def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='./plugins', use_default_commands: bool=True):
 		#self.historic = []
 		#self.commandhistoricline = 0
 		#self.tab_selected = 0
@@ -46,10 +52,11 @@ class Console:
 			'output_font_color':(255,255,255)
 		}
 
-		self.cfg_path = cfg_path
+		self.cfg_path = convert_path(cfg_path)
 		self.cfg_configfile = 'config.cfg'
-
-		self.exec_cfg(self.cfg_configfile)
+		
+		self.plugins_path = convert_path(plugins_path)
+		self.plugins = []
 
 		self.separator = separator
 		self.alias_separator = '&&'
@@ -77,18 +84,58 @@ class Console:
 				#"clear": [self.clear,False, [], "clear - clears the console output screen."],
 				"alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
 				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
-				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
-				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."],
+				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."], # pygame and tkinter
+				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."], # pygame and tkinter
 				"incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], "incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using " + self.return_char + "<var_name>."],
-				#"toggleconsole": ["toggleconsole",False, [], None],
-				#"togglemenu": ["togglemenu",False, [], None],
-				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."]
+				#"toggleconsole": ["toggleconsole",False, [], None], # pygame
+				#"togglemenu": ["togglemenu",False, [], None], # pygame
+				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."],
+				"plugin_load": [self.plugin_load, False, [str], "plugin_load <file_path> - Loads a python script"]
 			}
 		else:
 			self.valid_commands = {}
+		
+		self.exec_cfg(self.cfg_configfile)
 
-	def add_command(self, name: str, function, is_multiple_args: bool, list_of_args: list, description: str):
+	def plugin_load(self, file_path: str):
+		if not os.path.exists(file_path):
+			file_path = os.path.join(self.plugins_path, file_path)
+			if not os.path.exists(file_path):
+				return ['File does not exists.', self.colors['output_error_font_color']]
+
+		file_path = convert_path(file_path.replace('.py',''), '.')
+		filename = file_path.split('.')[-1]+'.py'
+
+		if file_path not in self.plugins:
+			plugin = import_module(file_path)
+			
+			self.plugins[filename] = []
+			try:
+				plugin_output = plugin.init_console(self)
+			except:
+				return [f'Couldn\'t initialize plugin {filename}', self.colors['output_error_font_color']]
+			
+			return plugin_output
+		else:
+			return ['Plugin is already loaded.', self.colors['output_error_font_color']]
+
+	def plugin_unload(self, plugin: str):
+		if plugin not in self.plugins:
+			return [f'{plugin} is not loaded.', self.colors['output_error_font_color']]
+		for c in self.plugins[plugin]:
+			if c in self.valid_commands:
+				for i in c:
+					if i != None:
+						del(i)
+				self.valid_commands.pop(c)
+		self.plugins.pop(plugin)
+			
+
+	def add_command(self, name: str, function, is_multiple_args: bool, list_of_args: list, description: str, plugin_name: str=None):
 		self.valid_commands[name] = [function, is_multiple_args, list_of_args, description]
+		if plugin_name != None and plugin_name in self.plugins:
+			print('PRINTING FROM \"add_command\" FUNCTION', __name__)
+			self.plugins[plugin_name].append(name) 
 
 	def handle_input(self, text):
 		words = text.lstrip().rstrip().split()
@@ -333,6 +380,7 @@ class Console:
 		return args
 
 	def exec_cfg(self, file_path: str):
+		file_path = convert_path(file_path)
 		if not os.path.exists(file_path):
 			file_path = self.cfg_path+os.path.sep+file_path
 		
