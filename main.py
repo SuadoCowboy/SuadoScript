@@ -89,7 +89,7 @@ class Console:
 					pass
 				else:
 					if words[i].starswith(self.return_char):
-						for cc in self.incrementvariables.duplicate():
+						for cc in self.incrementvariables.copy():
 							if words[i] == self.return_char + cc:
 								words[i] = str(self.incrementvariables[cc].get_value())
 					
@@ -168,7 +168,7 @@ class Console:
 				set_running_command(command_word)
 				return
 			
-			for c in self.incrementvariables.duplicate():
+			for c in self.incrementvariables.copy():
 				if c == command_word:
 					self.incrementvariables[c].increment()
 					return
