@@ -47,7 +47,6 @@ class Console:
 
 	def handle_input(self, text):
 		words = text.lstrip().rstrip().split(' ')
-		words.remove('')
 
 		if len(words) == 0:
 			return
