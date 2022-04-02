@@ -1,4 +1,5 @@
 import os
+import sys
 
 NAME = 'SCCP'
 VERSION = '0.1.0' # beta (that was super fast)
@@ -389,7 +390,7 @@ class Console:
 		self.running_commands = temp
 
 	def run(self):
-		print(NAME, VERSION)
+		print(f'{NAME} (V{VERSION}) Python {sys.version} System {sys.version_info}')
 		self.running = True
 		while self.running:
 			command = input('>')
