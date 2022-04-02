@@ -77,6 +77,7 @@ class Console:
 		if use_default_commands:
 			self.valid_commands = {
 				# command_name(str) : [function(FunctionType), is_multiple_args(bool), list_of_args_needed(list), description(str)]
+				"quit": [self.quit,False, [], "quit - ends the console loop."],
 				"commands": [self.get_commands,False, [], "commands - Show a list of commands."],
 				"help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
 				"echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
@@ -90,7 +91,8 @@ class Console:
 				#"toggleconsole": ["toggleconsole",False, [], None], # pygame
 				#"togglemenu": ["togglemenu",False, [], None], # pygame
 				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."],
-				"plugin_load": [self.plugin_load, False, [str], "plugin_load <file_path> - Loads a python script"]
+				"plugin_load": [self.plugin_load, False, [str], "plugin_load <file_path> - Loads a python script."],
+				"plugin_unload": [self.plugin_unload, False, [str], "plugin_unload <plugin_name> - Removes the plugin commands."]
 			}
 		else:
 			self.valid_commands = {}
@@ -107,38 +109,43 @@ class Console:
 				return ['File does not exists.', self.colors['output_error_font_color']]
 
 		file_path = convert_path(file_path.replace('.py',''), '.')
-		filename = file_path.split('.')[-1]+'.py'
 
-		if file_path not in self.plugins:
-			plugin = import_module(file_path)
-			
-			self.plugins[filename] = []
+		plugin = import_module(file_path)
+		plugin_name = plugin.__name__.split('.')[-1]+'.py'
+		if plugin_name not in self.plugins:
+			def plugin_add_command(name: str, *args, **kwargs):
+				self.add_command(name, *args, **kwargs)
+				self.plugins[plugin_name].append(name)
+
+			self.plugins[plugin_name] = []
 			try:
-				plugin_output = plugin.init_console(self)
+				plugin_output = plugin.init_console(plugin_add_command)
 			except:
-				return [f'Couldn\'t initialize plugin {filename}', self.colors['output_error_font_color']]
+				return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
 			
 			return plugin_output
 		else:
 			return ['Plugin is already loaded.', self.colors['output_error_font_color']]
 
 	def plugin_unload(self, plugin: str):
+		if not plugin.endswith('.py'):
+			plugin += '.py'
+		
 		if plugin not in self.plugins:
 			return [f'{plugin} is not loaded.', self.colors['output_error_font_color']]
+		
 		for c in self.plugins[plugin]:
 			if c in self.valid_commands:
 				for i in c:
 					if i != None:
 						del(i)
 				self.valid_commands.pop(c)
+		
 		self.plugins.pop(plugin)
 			
 
-	def add_command(self, name: str, function, is_multiple_args: bool, list_of_args: list, description: str, plugin_name: str=None):
+	def add_command(self, name: str, function, is_multiple_args: bool, list_of_args: list, description: str):
 		self.valid_commands[name] = [function, is_multiple_args, list_of_args, description]
-		if plugin_name != None and plugin_name in self.plugins:
-			print('PRINTING FROM \"add_command\" FUNCTION', __name__)
-			self.plugins[plugin_name].append(name) 
 
 	def handle_input(self, text):
 		words = text.lstrip().rstrip().split()
@@ -252,7 +259,7 @@ class Console:
 			
 			if command_word in self.loop_aliases:
 				if command_word in self.loop_aliases_on:
-					self.loop_aliases_on.erase(command_word)
+					self.loop_aliases_on.remove(command_word)
 				else:
 					self.loop_aliases_on.append(command_word)
 				return
@@ -288,17 +295,28 @@ class Console:
 
 	def get_aliases(self):
 		output = ''
-		index = 0
 		for alias in self.aliases:
-			if index == len(self.aliases):
+			output += alias + '\n'
+		
+		index = 0
+		for alias in self.loop_aliases:
+			if index == len(self.loop_aliases)-1:
 				output += alias
 			else:
 				output += alias + '\n'
-			index += 1
+		
+		if len(self.loop_aliases) == 0: # remove \n made by the first for-loop
+			output = output[:-1]
+
 		return output
 
 	def loop_alias(self, args):
-		alias_name = args.pop_front()
+		alias_name = args[0]
+		args.pop(0)
+
+		if alias_name in self.aliases:
+			self.aliases.pop(alias_name)
+
 		args = self.split_alias(args)
 		self.loop_aliases[alias_name] = args
 
@@ -328,6 +346,9 @@ class Console:
 	def update(self):
 		for command in self.loop_aliases_on:
 			if command in self.loop_aliases:
+				if len(self.loop_aliases[command]) == 1 and self.loop_aliases[command][0] == '':
+					self.loop_aliases_on.remove(command)
+
 				for c in self.loop_aliases[command]:
 					self.execute(c)
 	
@@ -394,7 +415,7 @@ class Console:
 				return ['File does not exists', self.colors['output_error_font_color']]
 		
 		with open(file_path, 'r') as f:
-			content = f.readline().split('\n')
+			content = f.read().split('\n')
 		
 		for i in range(len(content)):
 			if content[i].startswith('//'):
@@ -440,17 +461,18 @@ class Console:
 
 		self.running_commands = temp
 
+	def quit(self):
+		self.running = False
+
 	def run(self):
 		print(f'{NAME} V{VERSION} (Python {sys.version})')
 		self.running = True
 		while self.running:
 			command = input('>')
-			if command == 'quit':
-				self.running = False
-				break
-			self.update()
+
 			for line in command.split(self.separator):
 				self.execute(line)
+			self.update()
 
 if __name__ == '__main__':
 	console = Console()
