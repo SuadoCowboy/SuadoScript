@@ -3,11 +3,6 @@ import os
 NAME = 'SCCP'
 VERSION = '0.0.1' # alpha
 
-def convert_path(path: str, separators: list=['\\','/']):
-	for i in items:
-		path = path.replace(i, os.path.sep)
-	return path
-
 def check_type(string: str, type):
 	if type == float:
 		try:
@@ -18,6 +13,26 @@ def check_type(string: str, type):
 	if type == str:
 		return True
 	return False
+
+class IncrementVariable:
+	def __init__(self, value: float, minvalue: float, maxvalue: float, delta: float):
+		self.value = float(value)
+		self.minvalue = float(minvalue)
+		self.maxvalue = float(maxvalue)
+		self.delta = float(delta)
+
+	def increment(self):
+		if self.value >= self.maxvalue:
+			self.value = self.minvalue
+		elif self.value < self.minvalue:
+			self.value = self.minvalue
+		else:
+			self.value += self.delta
+
+		return self.value
+
+	def get_value(self):
+		return self.value
 
 class Console:
 	def __init__(self, separator: str=';', cfg_path: str='./cfg', use_default_commands: bool=True):
@@ -37,7 +52,7 @@ class Console:
 				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
 				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
 				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."],
-				#"incrementvar": ["incrementvar",False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.return_char, "<var_name>.")],
+				"incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.return_char, "<var_name>.")],
 				#"toggleconsole": ["toggleconsole",False, [], None],
 				#"togglemenu": ["togglemenu",False, [], None],
 				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."]
@@ -52,6 +67,8 @@ class Console:
 
 		self.cfg_path = cfg_path
 		self.cfg_configfile = 'config.cfg'
+
+		self.exec_cfg(self.cfg_configfile)
 
 		self.separator = separator
 		self.alias_separator = '&&'
@@ -280,6 +297,9 @@ class Console:
 		# todo: pass the text to pygame window AND put the text_color
 		print(text)
 
+	def create_incrementvar(value, var_name, minvalue, maxvalue, delta):
+		self.incrementvariables[var_name] = IncrementVariable(value, minvalue, maxvalue, delta)
+
 	def _help(self, command: str):
 		if command in self.valid_commands:
 			if self.valid_commands[command][3] == None:
@@ -309,7 +329,8 @@ class Console:
 		return args
 
 	def exec_cfg(self, file_path: str):
-		file_path = self.cfg_path+'/'+file_path
+		if not os.path.exists(file_path):
+			file_path = self.cfg_path+os.path.sep+file_path
 		
 		if not os.path.exists(file_path):
 			if os.path.exists(file_path+'.cfg'):
