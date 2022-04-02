@@ -86,7 +86,8 @@ class Console:
 		else:
 			self.valid_commands = {}
 
-	def add_command(self, name, function, is_multiple_args, list_of_args)
+	def add_command(self, name: str, function, is_multiple_args: bool, list_of_args: list, description: str):
+		self.valid_commands[name] = [function, is_multiple_args, list_of_args, description]
 
 	def handle_input(self, text):
 		words = text.lstrip().rstrip().split()
