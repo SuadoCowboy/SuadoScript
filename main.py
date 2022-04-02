@@ -52,7 +52,7 @@ class Console:
 				"loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
 				#"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."],
 				#"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."],
-				"incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.return_char, "<var_name>.")],
+				"incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.returnchar, "<var_name>.")],
 				#"toggleconsole": ["toggleconsole",False, [], None],
 				#"togglemenu": ["togglemenu",False, [], None],
 				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."]
