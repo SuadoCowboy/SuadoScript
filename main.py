@@ -391,7 +391,7 @@ class Console:
 				return ['File does not exists', self.colors['output_error_font_color']]
 		
 		with open(file_path, 'r') as f:
-			content = f.readlines().split('\n')
+			content = f.readline().split('\n')
 		
 		for i in range(len(content)):
 			if content[i].startswith('//'):
