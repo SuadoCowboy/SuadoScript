@@ -85,7 +85,7 @@ class Console:
 			
 			checktype = None
 			for i in range(len(words)):
-				if command_word in self.returnchar_valid_commands:
+				if command_word in self.valid_commands:
 					pass
 				else:
 					if words[i].starswith(self.return_char):
