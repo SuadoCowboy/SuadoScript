@@ -163,9 +163,9 @@ class Console:
 					else:
 						args = self.aliases[command_word][i]
 					
-					execute(args)
-					set_running_command(args)
-				set_running_command(command_word)
+					self.execute(args)
+					self.set_running_command(args)
+				self.set_running_command(command_word)
 				return
 			
 			for c in self.incrementvariables.copy():
