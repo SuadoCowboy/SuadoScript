@@ -397,7 +397,7 @@ class Console:
 				break
 			self.update()
 			for line in command.split(self.separator):
-				self.execute(command)
+				self.execute(line)
 
 if __name__ == '__main__':
 	console = Console()
