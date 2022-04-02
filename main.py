@@ -370,14 +370,14 @@ class Console:
 		else:
 			self.output_text(out[0], out[1])
 
-	def output_text(self, text: str, text_color: str=None):
+	def output_text(self, text: str, text_color: tuple=None):
 		if text == None or text.lower().rstrip().lstrip().replace('\n','') == 'none':
 			return
 		
-		if text_color == None:
+		if text_color == None :
 			text_color = self.colors['output_font_color']
 
-		# todo: pass the text to pygame window AND put the text_color
+		# todo: pass the text to pygame/tkinter window AND put the text_color
 		print(text)
 
 	def create_incrementvar(value, var_name, minvalue, maxvalue, delta):
@@ -482,7 +482,7 @@ class Console:
 			self.execute(line)
 
 	def run(self):
-		print(f'{NAME} V{VERSION} (Python {sys.version})')
+		self.output_text(f'{NAME} V{VERSION} (Python {sys.version})', (0,255,0))
 		self.running = True
 
 		t = Thread(target=self.loop_update)
