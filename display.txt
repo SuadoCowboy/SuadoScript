@@ -1,4 +1,8 @@
-temporarily display on pygame but user input in cmd.
+it's temporarily input and output on cmd.
+
+todo: display on pygame but user input on cmd. OR/and create a tkinter app with input and output inside him
 
 window title: SCCP - Output
 maybe add key event handler to pygame window
+
+future todo: add input inside pygame
