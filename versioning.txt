@@ -1,0 +1,6 @@
+A presença de um rótulo de pré-lançamento (-alpha, -beta) indica riscos
+substanciais, assim como um número majoritário zero (0.y.z), pois normalmente
+indica que o software não se encontra finalizado (em desenvolvimento) e pode
+conter mudanças com qualquer nível de impacto (altíssimo risco).
+
+https://pt.wikipedia.org/wiki/Versionamento

@@ -1,0 +1,1 @@
+remember to see original SCCP python project to handle alias loops

@@ -1,0 +1,4 @@
+temporarily display on pygame but user input in cmd.
+
+window title: SCCP - Output
+maybe add key event handler to pygame window
