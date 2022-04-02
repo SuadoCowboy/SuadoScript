@@ -1,7 +1,7 @@
 import os
 
 NAME = 'SCCP'
-VERSION = '0.0.1' # alpha
+VERSION = '0.1.0' # beta (that was super fast)
 
 def check_type(string: str, type):
 	if type == float:
