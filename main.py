@@ -12,17 +12,17 @@ def check_type(string: str, type):
 	if type == float:
 		try:
 			float(string)
-			return true
+			return True
 		except ValueError:
-			return false
+			return False
 	if type == str:
-		return true
-	return false
+		return True
+	return False
 
 class Console:
 	def __init__(self, separator: str=';', cfg_path: str='./cfg'):
 		self.colors = {
-			'error':(255,0,0),
+			'output_error_font_color':(255,0,0),
 			'output_font_color':(255,255,255)
 		}
 
@@ -46,17 +46,18 @@ class Console:
 		self.toggle_commands = []
 
 	def handle_input(self, text):
-		words = text.lstrip().rstrip().split(' ')
+		words = text.lstrip().rstrip().split()
 
 		if len(words) == 0:
 			return
 		
-		command_word = words.pop_front()
-		if command_word in CommandHandler.valid_commands:
-			c = CommandHandler.valid_commands[command_word]
-			if c[1] == false: # is_multiple_args check
+		command_word = words[0]
+		words.pop(0)
+		if command_word in self.valid_commands:
+			c = self.valid_commands[command_word]
+			if c[1] == False: # is_multiple_args check
 				if len(words) != len(c[2]): # da erro se estiver faltando argumentos ou tiver muitos argumentos
-					return [str('Failure executing command "', command_word, '" expected ', len(c[2]), ' parameters'), Global.ui_custom['console']['output_error_font_color']]
+					return [str('Failure executing command "', command_word, '" expected ', len(c[2]), ' parameters'), self.colors['output_error_font_color']]
 			
 			checktype = None
 			for i in range(len(words)):
@@ -68,7 +69,7 @@ class Console:
 							if words[i] == str(Global.return_char, cc):
 								words[i] = str(Global.incrementvariables[cc].get_value())
 					
-				if c[1] == true:
+				if c[1] == True:
 					checktype = check_type(words[i], c[2][0])
 				else:
 					checktype = check_type(words[i], c[2][i])
@@ -76,7 +77,7 @@ class Console:
 				if not checktype:
 					return [str('Failure executing command "', command_word, '" parameter ', i+1, ' "', words[i], '" is the wrong type'), Global.ui_custom['console']['output_error_font_color']]
 				
-			if c[1] == true:
+			if c[1] == True:
 				words = [words]
 			
 			Global.set_running_command(command_word)
@@ -206,7 +207,7 @@ def exec_cfg(console: Console, file_path: str):
 		if os.path.exists(file_path+'.cfg'):
 			file_path += '.cfg'
 		else:
-			return [console.colors['error'], 'File does not exists']
+			return ['File does not exists', console.colors['output_error_font_color']]
 	
 	with open(file_path, 'r') as f:
 		content = f.readlines().split('\n')
@@ -244,8 +245,8 @@ def check_toggle_commands(console: Console):
 
 def command_just_ran(console: Console, command):
 	if command in console.running_commands:
-		return true
-	return false
+		return True
+	return False
 
 def erase_running_commands(console: Console):
 	temp = []
