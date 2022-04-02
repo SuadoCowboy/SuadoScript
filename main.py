@@ -42,7 +42,7 @@ class IncrementVariable:
 		return self.value
 
 class Console:
-	def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='./plugins', use_default_commands: bool=True):
+	def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='plugins', use_default_commands: bool=True):
 		#self.historic = []
 		#self.commandhistoricline = 0
 		#self.tab_selected = 0
