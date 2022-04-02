@@ -28,7 +28,7 @@ class Console:
 		if use_default_commands:
 			self.valid_commands = {
 				# command_name(str) : [function(FunctionType), is_multiple_args(bool), list_of_args_needed(list), description(str)]
-				"commands": [console.commands,False, [], "commands - Show a list of commands."],
+				"commands": [self.get_commands,False, [], "commands - Show a list of commands."],
 				"help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
 				"echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
 				"exec": [self._exec,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
@@ -40,7 +40,7 @@ class Console:
 				#"incrementvar": ["incrementvar",False, [float, str, float, float, float], str("incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using ", self.return_char, "<var_name>.")],
 				#"toggleconsole": ["toggleconsole",False, [], None],
 				#"togglemenu": ["togglemenu",False, [], None],
-				"aliases": [self.aliases,False,[], "aliases - Show a list of aliases."]
+				"aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."]
 			}
 		else:
 			self.valid_commands = {}
@@ -188,6 +188,33 @@ class Console:
 		
 		return [str('Unknown command: "', command_word, '"'), self.colors['console']['output_error_font_color']]
 
+	def get_aliases(self):
+		output = ''
+		index = 0
+		for alias in self.aliases:
+			if index == len(self.aliases):
+				output += alias
+			else:
+				output += alias + '\n'
+			index += 1
+		return output
+
+	def loop_alias(self, args):
+		alias_name = args.pop_front()
+		args = self.split_alias(args)
+		self.loop_aliases[alias_name] = args
+
+	def get_loop_aliases(self):
+		output = ''
+		index = 0
+		for alias in self.loop_aliases:
+			if index == len(self.aliases):
+				output += alias
+			else:
+				output += alias + '\n'
+			index += 1
+		return output
+
 	def update(self):
 		for command in self.loop_aliases_on:
 			if command in self.loop_aliases:
@@ -211,9 +238,10 @@ class Console:
 		if text_color == None:
 			text_color = self.colors['output_font_color']
 
-		# todo: pass the text to pygame window
+		# todo: pass the text to pygame window AND put the text_color
+		print(text)
 
-	def help(self, command: str):
+	def _help(self, command: str):
 		if command in self.valid_commands:
 			if self.valid_commands[command][3] == None:
 				return command + ' does not have a description.'
@@ -299,3 +327,12 @@ class Console:
 
 if __name__ == '__main__':
 	console = Console()
+
+	running = True
+	while running:
+		command = input('>')
+		if command == 'quit':
+			running = False
+			break
+		console.update()
+		console.execute(command)
