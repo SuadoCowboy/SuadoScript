@@ -388,8 +388,11 @@ class Console:
         if self.output == None:
             print(text)
         else:
-            self.output.set(self.output.get()+text+'\n')
-
+            old_text = self.output.get()
+            if len(old_text.split('\n')) > int(self.height/50):
+                old_text = ''
+            self.output.set(old_text+text+'\n')
+    
     def create_incrementvar(value, var_name, minvalue, maxvalue, delta):
         self.incrementvariables[var_name] = IncrementVariable(value, minvalue, maxvalue, delta)
 
@@ -505,7 +508,7 @@ class Console:
 
         self.output = tk.StringVar()
         
-        output_label = tk.Label(justify='left', anchor='nw', textvariable=self.output, bg='#ffffff',width=int(abs(self.width/10)),height=int(abs(self.height/45)))
+        output_label = tk.Label(justify='left', anchor='nw', textvariable=self.output, bg='#ffffff',width=int(self.width/10),height=int(self.height/45), wraplength=int(self.width/1.10))
         output_label.pack()
     
         self.entry = tk.Entry()
