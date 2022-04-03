@@ -94,7 +94,7 @@ class Console:
                 "help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
                 "echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
                 "exec": [self.exec_cfg,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
-                #"clear": [self.clear,False, [], "clear - clears the console output screen."],
+                "clear": [self.clear,False, [], "clear - clears the console output screen."],
                 "alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
                 "loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
                 #"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."], # pygame and tkinter
@@ -111,6 +111,11 @@ class Console:
             self.valid_commands = {}
         
         self.exec_cfg(self.cfg_configfile)
+
+    def clear(self):
+        if self.output == None:
+            return ['output label is not defined', (255,0,0)]
+        self.output.set('')
 
     def wait(self, seconds: float):
         sleep(float(seconds))
