@@ -108,32 +108,34 @@ class Console:
 		sleep(float(seconds))
 
 	def plugin_load(self, file_path: str):
-		if not file_path.endswith('.py'):
-			file_path += '.py'
-		
-		if not os.path.exists(file_path):
-			file_path = os.path.join(self.plugins_path, file_path)
-			if not os.path.exists(file_path):
-				return ['File does not exists.', self.colors['output_error_font_color']]
+        if not file_path.endswith('.py'):
+            file_path += '.py'
+        
+        if not os.path.exists(file_path):
+            file_path = os.path.join(self.plugins_path, file_path)
+            if not os.path.exists(file_path):
+                return ['File does not exists.', self.colors['output_error_font_color']]
 
-		file_path = convert_path(file_path.replace('.py',''), '.')
+        file_path = convert_path(file_path.replace('.py',''), '.')
 
-		plugin = import_module(file_path)
-		plugin_name = plugin.__name__.split('.')[-1]+'.py'
-		if plugin_name not in self.plugins:
-			def plugin_add_command(name: str, *args, **kwargs):
-				self.add_command(name, *args, **kwargs)
-				self.plugins[plugin_name].append(name)
+        plugin = import_module(file_path)
+        plugin_name = plugin.__name__.split('.')[-1]+'.py'
+        if plugin_name not in self.plugins:
+            def plugin_add_command(name: str, *args, **kwargs):
+                self.add_command(name, *args, **kwargs)
+                self.plugins[plugin_name].append(name)
 
-			self.plugins[plugin_name] = []
-			try:
-				plugin_output = plugin.init_console(plugin_add_command)
-			except:
-				return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
-			
-			return plugin_output
-		else:
-			return ['Plugin is already loaded.', self.colors['output_error_font_color']]
+            self.plugins[plugin_name] = []
+            try:
+                if 'colors' in dir(plugin):
+                    plugin.colors = self.colors
+                plugin_output = plugin.init_console(plugin_add_command)
+            except:
+                return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
+            
+            return plugin_output
+        else:
+            return ['Plugin is already loaded.', self.colors['output_error_font_color']]
 
 	def plugin_unload(self, plugin: str):
 		if not plugin.endswith('.py'):
@@ -494,5 +496,6 @@ class Console:
 			self.threads[-1].start()
 
 if __name__ == '__main__':
+	sys.tracebacklimit = 0
 	console = Console()
 	console.run()

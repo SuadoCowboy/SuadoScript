@@ -3,7 +3,6 @@ from threading import Thread
 from time import sleep
 import os
 import sys
-import tkinter as tk
 
 NAME = 'SCCP'
 VERSION = '0.1.0' # beta (that was super fast)
@@ -45,22 +44,15 @@ class IncrementVariable:
         return self.value
 
 class Console:
-    def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='plugins', use_default_commands: bool=True, width: int=500, height: int=500):
+    def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='plugins', use_default_commands: bool=True):
         #self.historic = []
         #self.commandhistoricline = 0
         #self.tab_selected = 0
 
-        self.width = width
-        self.height = height
-        
         self.colors = {
             'output_error_font_color':(255,0,0),
             'output_font_color':(255,255,255)
         }
-
-        self.entry = None
-        self.output = None
-        self.output_string = ''
 
         self.cfg_path = convert_path(cfg_path)
         self.cfg_configfile = 'config.cfg'
@@ -94,7 +86,7 @@ class Console:
                 "help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
                 "echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
                 "exec": [self.exec_cfg,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
-                "clear": [self.clear,False, [], "clear - clears the console output screen."],
+                #"clear": [self.clear,False, [], "clear - clears the console output screen."],
                 "alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
                 "loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
                 #"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."], # pygame and tkinter
@@ -111,11 +103,6 @@ class Console:
             self.valid_commands = {}
         
         self.exec_cfg(self.cfg_configfile)
-
-    def clear(self):
-        if self.output == None:
-            return ['output label is not defined', (255,0,0)]
-        self.output.set('')
 
     def wait(self, seconds: float):
         sleep(float(seconds))
@@ -140,6 +127,8 @@ class Console:
 
             self.plugins[plugin_name] = []
             try:
+                if 'colors' in dir(plugin):
+                    plugin.colors = self.colors
                 plugin_output = plugin.init_console(plugin_add_command)
             except:
                 return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
@@ -387,17 +376,12 @@ class Console:
         if text == None or text.lower().rstrip().lstrip().replace('\n','') == 'none':
             return
         
-        if text_color == None:
+        if text_color == None :
             text_color = self.colors['output_font_color']
 
-        if self.output == None:
-            print(text)
-        else:
-            old_text = self.output.get()
-            if len(old_text.split('\n')) > int(self.height/50):
-                old_text = ''
-            self.output.set(old_text+text+'\n')
-    
+        # todo: pass the text to pygame/tkinter window AND put the text_color
+        print(text)
+
     def create_incrementvar(value, var_name, minvalue, maxvalue, delta):
         self.incrementvariables[var_name] = IncrementVariable(value, minvalue, maxvalue, delta)
 
@@ -498,38 +482,20 @@ class Console:
     def handle_lines(self, command):
         for line in command.split(self.separator):
             self.execute(line)
-        self.entry.delete(0,tk.END)
-        self.entry.insert(0,'')
 
     def run(self):
+        self.output_text(f'{NAME} V{VERSION} (Python {sys.version})', (0,255,0))
         self.running = True
 
         t = Thread(target=self.loop_update)
         t.start()
+        while self.running:
+            command = input('>')
 
-        window = tk.Tk()
-        window.title("SCCP Window")
-        window.geometry(f'{self.width}x{self.height}')
-
-        self.output = tk.StringVar()
-        
-        output_label = tk.Label(justify='left', anchor='nw', textvariable=self.output, bg='#ffffff',width=int(self.width/10),height=int(self.height/45), wraplength=int(self.width/1.10))
-        output_label.pack()
-    
-        self.entry = tk.Entry()
-        self.entry.pack()
-    
-        button = tk.Button(text="Send", command=self.send)
-        button.pack()
-
-        self.output_text(f'{NAME} V{VERSION} (Python {sys.version})', (0,255,0))
-        
-        tk.mainloop()
-
-    def send(self):
-        self.threads.append(Thread(target=self.handle_lines, args=[self.entry.get()]))
-        self.threads[-1].start()
+            self.threads.append(Thread(target=self.handle_lines, args=[command]))
+            self.threads[-1].start()
 
 if __name__ == '__main__':
+    sys.tracebacklimit = 0
     console = Console()
     console.run()

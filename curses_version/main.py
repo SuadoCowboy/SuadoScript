@@ -130,6 +130,8 @@ class Console:
 
 			self.plugins[plugin_name] = []
 			try:
+				if 'colors' in dir(plugin):
+                    plugin.colors = self.colors
 				plugin_output = plugin.init_console(plugin_add_command)
 			except:
 				return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
@@ -510,5 +512,6 @@ def main(stdscr):
 
 
 if __name__ == '__main__':
+	sys.tracebacklimit = 0
 	console = Console()
     wrapper(main)
