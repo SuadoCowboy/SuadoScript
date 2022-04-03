@@ -127,9 +127,19 @@ class Console:
 
             self.plugins[plugin_name] = []
             try:
-                if 'colors' in dir(plugin):
-                    plugin.colors = self.colors
-                plugin_output = plugin.init_console(plugin_add_command)
+                plugin_output = plugin.init_console(plugin_add_command, {
+                    'colors':self.colors, # should i just let the plugin add/modify/remove colors or should i just copy the dict?
+                    'separator':self.separator,
+                    'incrementvariable':IncrementVariable,
+                    'check_type':check_type,
+                    'convert_path':convert_path,
+                    'cfg_path':self.cfg_path,
+                    'cfg_configfile':self.cfg_configfile,
+                    'alias_separator':self.alias_separator,
+                    'return_char':self.return_char,
+                    'plus_char':self.plus_char,
+                    'minus_char':self.minus_char
+                })
             except:
                 return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
             
@@ -496,6 +506,5 @@ class Console:
 			self.threads[-1].start()
 
 if __name__ == '__main__':
-	sys.tracebacklimit = 0
 	console = Console()
 	console.run()
