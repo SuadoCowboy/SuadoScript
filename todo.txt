@@ -1,3 +1,1 @@
-see original SCCP python project to handle alias loops
-
-separate output from input
+separate output from input, can use the python curses module maybe.
