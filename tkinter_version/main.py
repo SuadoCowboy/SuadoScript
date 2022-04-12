@@ -168,7 +168,7 @@ class Console:
         self.valid_commands[name] = [function, is_multiple_args, list_of_args, description]
 
     def handle_input(self, text):
-        words = text.lstrip().rstrip().split()
+        words = text.strip().split()
 
         if len(words) == 0:
             return
@@ -373,7 +373,7 @@ class Console:
                     self.execute(c)
     
     def execute(self, command: str):
-        out = self.handle_input(command.lstrip().rstrip())
+        out = self.handle_input(command.strip())
         if out == None:
             return
         
@@ -415,24 +415,27 @@ class Console:
     def split_alias(self, args: str):
         temp = ''
         for i in args:
-            temp += str(i).lstrip().rstrip() + ' '
+            temp += str(i).strip() + ' '
             
         args = temp.split(self.alias_separator)
         for i in range(len(args)):
-            args[i] = args[i].lstrip().rstrip()
+            args[i] = args[i].strip()
         
         return args
 
     def exec_cfg(self, file_path: str):
         file_path = convert_path(file_path)
-        if not os.path.exists(file_path):
-            file_path = self.cfg_path+os.path.sep+file_path
-        
+
         if not os.path.exists(file_path):
             if os.path.exists(file_path+'.cfg'):
                 file_path += '.cfg'
+                if not os.path.isfile(file_path):
+                    raise OSError(f'{file_path} is not a file.')
             else:
                 return ['File does not exists', self.colors['output_error_font_color']]
+
+        if not os.path.exists(file_path):
+            file_path = self.cfg_path+os.path.sep+file_path
         
         with open(file_path, 'r') as f:
             content = f.read().split('\n')
@@ -460,7 +463,7 @@ class Console:
                     temp += c
                 index += 1
             content[i] = temp.rstrip()
-        
+
         for line in content:
             self.execute(line)
 
