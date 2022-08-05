@@ -1,5 +1,5 @@
 # Requirements
-Python 3.x
+Python 3.x (Python 3.9 is recommended)
 
 # Usage
 SuadoScript is meant to be used for games to configure them. Nonetheless
