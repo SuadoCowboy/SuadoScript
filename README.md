@@ -32,3 +32,7 @@ incrementvariable.
 
 # Created with time and love by
 Suado Cowboy
+
+# Extra
+Altough It is made in python, I intend to make it in gdscript (godot language)
+and maybe other languages like java, c++, c# and javascript.
