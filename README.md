@@ -17,7 +17,8 @@ the interpreter. To execute the user need to load them manually. If you
 are looking to load them automatically, you would need to put in the code
 a line with the "load_plugin" function to execute it.
 
-The "cfg" folder is where SuadoScript files stand.
+The "cfg" folder is where SuadoScript files should be. Nonetheless, it could
+be executed from anywhere.
 
 # Understanding the use of "@"
 "@" at the start of a command means that the result of the function will
