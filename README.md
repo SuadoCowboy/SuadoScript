@@ -35,4 +35,5 @@ Suado Cowboy
 
 # Extra
 Altough It is made in python, I intend to make it in gdscript (godot language)
-and maybe other languages like java, c++, c# and javascript.
+and MAYBE other languages like Java, C++, C# and JavaScript.
+Theses versions would use Lua as plugin language instead of Python.
