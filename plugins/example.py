@@ -1,6 +1,6 @@
-def init_console(add_command_function, console_variables):
+def init_console(add_command, console_variables):
     # arguments = name: str, function, is_multiple_args: bool, list_of_args: list, description: str
-    add_command_function('square', create_square, False, [float, float, str], 'square <width> <height> <char> - draws a square')
+    add_command('square', create_square, False, [float, float, str], 'square <width> <height> <char> - draws a square')
 
 def create_square(width: int, height: int, char: str):
     out = ''
