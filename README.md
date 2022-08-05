@@ -1,3 +1,6 @@
+# Requirements
+Python 3.x
+
 # Usage
 SuadoScript is meant to be used for games to configure them. Nonetheless
 It is not prohibited to use in other types of programs.
@@ -20,7 +23,7 @@ a line with the "load_plugin" function to execute it.
 The "cfg" folder is where SuadoScript files should be. Nonetheless, it could
 be executed from anywhere.
 
-# Understanding the use of "@"
+# Understanding the usage of "@"
 "@" at the start of a command means that the result of the function will
 return, but only if that is defined, here is an example: incrementvar
 creates 2 commands: <incrementvar_name> and @<incrementvar_name>,
