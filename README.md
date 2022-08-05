@@ -1,5 +1,5 @@
 # Requirements
-Python 3.x (Python 3.9 is recommended)
+Python 3.x (Python 3.10 is recommended)
 
 # Usage
 SuadoScript is meant to be used for games to configure them. Nonetheless
@@ -14,8 +14,8 @@ and also complex functions: Imagine a game with the function of binding a key to
 if you want to create something like a menu of binds, you can, all you need is time, thinking and
 a little of the game commands knowledge.
 
-# Folders usage
-The "plugins" folder is for python scripts that can be executed inside
+# Folders correct usage
+The "plugins" folder is for Python scripts that can be executed inside
 the interpreter. To execute the user need to load them manually. If you
 are looking to load them automatically, you would need to put in the code
 a line with the "load_plugin" function to execute it.
@@ -36,4 +36,4 @@ Suado Cowboy
 # Extra
 Altough It is made in python, I intend to make it in gdscript (godot language)
 and MAYBE other languages like Java, C++, C# and JavaScript.
-Theses versions would use Lua as plugin language instead of Python.
+All these versions would use Lua as plugin language instead of Python.
