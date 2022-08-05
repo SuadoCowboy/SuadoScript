@@ -1,1 +1,5 @@
-separate output from input, can use the python curses module maybe.
+adicionar arguments_parser module pro handle_input
+
+separar output do input, usar o modulo curses pra isso.
+
+documentação do código e/ou explicação pequena das funções e suas linhas de código.
