@@ -53,8 +53,10 @@ class Console:
         #self.tab_selected = 0
 
         self.colors = {
-            'output_error_font_color':(255,0,0),
-            'output_font_color':(255,255,255)
+            'output':{
+                'error': (255,0,0),
+                'default': (255,255,255)
+            }
         }
 
         self.cfg_path = convert_path(cfg_path)
@@ -115,20 +117,20 @@ class Console:
             file_path += '.py'
         
         if not os.path.exists(file_path):
-            file_path = os.path.join(self.plugins_path, file_path)
+            file_path = os.path.join(self.plugins_path, os.path.basename(file_path))
             if not os.path.exists(file_path):
-                return ['File does not exists.', self.colors['output_error_font_color']]
+                return ['File does not exists.', self.colors['output']['error']]
 
         file_path = convert_path(file_path.replace('.py',''), '.')
 
         plugin = import_module(file_path)
-        plugin_name = plugin.__name__.split('.')[-1]+'.py'
+        plugin_name = plugin.NAME
         if plugin_name not in self.plugins:
+            self.plugins[plugin_name] = []
+
             def plugin_add_command(name: str, *args, **kwargs):
                 self.add_command(name, *args, **kwargs)
                 self.plugins[plugin_name].append(name)
-
-            self.plugins[plugin_name] = []
             try:
                 plugin_output = plugin.init_console(plugin_add_command, {
                     'colors':self.colors, # should i just let the plugin add/modify/remove colors or should i just copy the dict?
@@ -144,18 +146,15 @@ class Console:
                     'minus_char':self.minus_char
                 })
             except:
-                return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output_error_font_color']]
+                return [f'Could not initialize plugin \"{plugin_name}\"', self.colors['output']['error']]
             
             return plugin_output
         else:
-            return ['Plugin is already loaded.', self.colors['output_error_font_color']]
+            return ['Plugin is already loaded.', self.colors['output']['error']]
 
     def plugin_unload(self, plugin: str):
-        if not plugin.endswith('.py'):
-            plugin += '.py'
-        
         if plugin not in self.plugins:
-            return [f'{plugin} is not loaded.', self.colors['output_error_font_color']]
+            return [f'{plugin} is not loaded.', self.colors['output']['error']]
         
         for c in self.plugins[plugin]:
             if c in self.valid_commands:
@@ -182,7 +181,7 @@ class Console:
             c = self.valid_commands[command_word]
             if c[1] == False: # is_multiple_args check
                 if len(words) != len(c[2]): # da erro se estiver faltando argumentos ou tiver muitos argumentos
-                    return ['Failure executing command "' + command_word + '" expected ' + str(len(c[2])) + ' parameters', self.colors['output_error_font_color']]
+                    return ['Failure executing command "' + command_word + '" expected ' + str(len(c[2])) + ' parameters', self.colors['output']['error']]
             
             checktype = None
             for i in range(len(words)):
@@ -200,7 +199,7 @@ class Console:
                     checktype = check_type(words[i], c[2][i])
                     
                 if not checktype:
-                    return ['Failure executing command "' + command_word + '" parameter ' + str(i+1) + ' "' + words[i] + '" is the wrong type', self.colors['output_error_font_color']]
+                    return ['Failure executing command "' + command_word + '" parameter ' + str(i+1) + ' "' + words[i] + '" is the wrong type', self.colors['output']['error']]
                 
             if c[1] == True:
                 words = [words]
@@ -276,7 +275,7 @@ class Console:
                 
                 if self.return_char+c == command_word:
                     out = handle_input(str(self.incrementvariables[c].get_value()))
-                    if out == None or out[1] == self.colors['output_error_font_color']: # no momento é a unica forma de eu pegar se for erro...
+                    if out == None or out[1] == self.colors['output']['error']: # no momento é a unica forma de eu pegar se for erro...
                         return # vai retornar se for erro
                     return out # se nao for erro, vai retornar a str
             
@@ -287,7 +286,7 @@ class Console:
                     self.loop_aliases_on.append(command_word)
                 return
         
-        return ['Unknown command: "' + command_word + '"', self.colors['output_error_font_color']]
+        return ['Unknown command: "' + command_word + '"', self.colors['output']['error']]
 
     def alias(self, args: list):
         alias_name = args[0]
@@ -390,7 +389,7 @@ class Console:
             return
         
         if text_color == None :
-            text_color = self.colors['output_font_color']
+            text_color = self.colors['output']['default']
 
         # todo: pass the text to pygame/tkinter window AND put the text_color
         print(text)
@@ -435,7 +434,7 @@ class Console:
                 if not os.path.isfile(file_path):
                     raise OSError(f'{file_path} is not a file.')
             else:
-                return ['File does not exists', self.colors['output_error_font_color']]
+                return ['File does not exists', self.colors['output']['error']]
 
         if not os.path.exists(file_path):
             file_path = self.cfg_path+os.path.sep+file_path
