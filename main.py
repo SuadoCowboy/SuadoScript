@@ -3,6 +3,7 @@ from threading import Thread
 from time import sleep
 import os
 import sys
+import copy
 
 NAME = 'SuadoScript Interpreter'
 VERSION = '0.2.0' # making of 0.2
@@ -22,6 +23,69 @@ def convert_path(path: str, convert_to: str=os.path.sep, separators: list=['\\',
     for i in separators:
         path = path.replace(i, convert_to)
     return path
+
+def parse_arguments(arguments: str, separator=' ', ignore_separator_char='"'):
+        output = ''
+        
+        if type(arguments) == list:
+            for i in arguments:
+                output += i + ' ' # its space instead of separator because sys.argv only splits with space
+            arguments = output[:-1]
+        
+        if arguments.isspace():
+            return []
+        
+        arguments = arguments.split(separator)
+        if len(arguments) == 0 or len(arguments) == 1 and arguments[0] == '':
+            return []
+            
+        # makes all the strings that have the ignore_separator_char
+        # in the borders be only 1 string instead of splitting
+        # example: "aaa bbbb cc" sdsd fsd -> ['aaa bbbb cc', 'sdsd','fsd']
+        temp = []
+        start_index = None
+        for index,item in enumerate(arguments):
+            if start_index == None:
+                if item.startswith(ignore_separator_char):
+                    if item.endswith(ignore_separator_char):
+                        if len(item) > 2:
+                            temp.append(item[1:-1])
+                        else:
+                            temp.append(item)
+                    else:
+                        start_index = index
+                else:
+                    temp.append(item)
+            elif item.endswith(ignore_separator_char):
+                t = ''
+                for index,string in enumerate(arguments[start_index:index]):
+                    if index == 0 and string.startswith(ignore_separator_char):
+                        string = string[len(ignore_separator_char):]
+                    
+                    t += string+separator
+                t = t[:-1]
+                
+                if item.endswith(ignore_separator_char):
+                    item = item[:len(ignore_separator_char)*-1]
+                
+                temp.append(t)
+                start_index = None
+                temp[-1] += separator+item
+            
+            if len(arguments)-1 == index and start_index != None:
+                t = ''
+                for index,string in enumerate(arguments[start_index:]):
+                    if index == 0 and string.startswith(ignore_separator_char):
+                        string = string[len(ignore_separator_char):]
+                
+                    t += string+separator
+                t = t[:-1]
+                
+                temp.append(t)
+        
+        arguments = temp
+        
+        return arguments
 
 class IncrementVariable:
     def __init__(self, value: float, minvalue: float, maxvalue: float, delta: float):
@@ -44,7 +108,7 @@ class IncrementVariable:
         return self.value
 
 class Console:
-    def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='./plugins', use_default_commands: bool=True):
+    def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='plugins', use_default_commands: bool=True):
         #self.historic = []
         #self.commandhistoricline = 0
         #self.tab_selected = 0
@@ -63,12 +127,15 @@ class Console:
         self.plugins = {}
 
         self.separator = separator
-        self.alias_separator = '&&'
+        
         self.return_char = '@'
+        
         self.plus_char = '+'
         self.minus_char = '-'
 
+        self.alias_separator = '&'
         self.aliases = {}
+        
         self.loop_aliases = {}
         self.loop_aliases_on = []
 
@@ -76,30 +143,34 @@ class Console:
 
         self.incrementvariables = {}
 
+        # That idea could be better(I guess)
         self.running_commands = []
         self.ignore_commands = []
         self.toggle_commands = []
 
         if use_default_commands:
             self.valid_commands = {
-                # command_name(str) : [function(FunctionType), is_multiple_args(bool), list_of_args_needed(list), description(str)]
-                "quit": [self.quit, False, [], "quit - ends the console loop."],
-                "commands": [self.get_commands,False, [], "commands - Show a list of commands."],
-                "help": [self._help,False, [str], "help <command> - Shows the description of the specified command."],
-                "echo": [self.echo,True, [str], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
-                "exec": [self.exec_cfg,False, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
-                #"clear": [self.clear,False, [], "clear - clears the console output screen."],
-                "alias": [self.alias,True, [str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
-                "loop_alias": [self.loop_alias,True, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
-                #"bind": [bind,True, [str], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."], # pygame and tkinter
-                #"unbind": [unbind,False, [str], "unbind <key> - Erases the keybind."], # pygame and tkinter
-                "incrementvar": [self.create_incrementvar,False, [float, str, float, float, float], "incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using " + self.return_char + "<var_name>."],
-                #"toggleconsole": ["toggleconsole",False, [], None], # pygame
-                #"togglemenu": ["togglemenu",False, [], None], # pygame
-                "aliases": [self.get_aliases,False,[], "aliases - Show a list of aliases."],
-                "plugin_load": [self.plugin_load, False, [str], "plugin_load <file_path> - Loads a python script."],
-                "plugin_unload": [self.plugin_unload, False, [str], "plugin_unload <plugin_name> - Removes the plugin commands."],
-                "wait": [self.wait, False, [float], "wait <seconds> - Stops the line execution for the specified time in seconds."]
+                # command_name(str) : [function(FunctionType), list_of_args(list), description(str)]
+                # list_of_args_needed trick: if theres arguments that is not required to put in, for example: create_square(w,h,char='#') -> [float, float, [str]]
+                # just put the FIRST argument that is not required with [], after that argument all of the rest is not required(including itself of course).
+                # and if you want something that uses multiple arguments, put the A SINGLE ARGUMENT and put (type,) like that: [(str,)] so the function like echo(*args)
+                # will work without using quotes.
+                "quit": [self.quit, [], "quit - ends the console loop."],
+                "help": [self._help, [[str]], "help <command> - Shows the description of the specified command or, if no <command> is passed, shows a list of commands."],
+                "echo": [self.echo, [(str,)], "echo <args> - Prints out to the console what is inside of the parameter <args>."],
+                "exec": [self.exec_cfg, [str], "exec <file_path> - Executes the specified file interpreting it as a cfg."],
+                #"clear": [self.clear, [], "clear - clears the console output screen."],
+                "alias": [self.alias, [str, str], "alias <alias_name> <commands> - Creates an alias command, called the same as the parameter <alias_name> content, with the <commands> parameter as his function."],
+                "loop_alias": [self.loop_alias, [str], "loop_alias <alias_name> <commands> - Creates an loop_alias command that when called, toggles from executing commands and stop executing commands."],
+                #"bind": [bind, [str, [str]], "bind <key> <commands> - Binds the specified key with the specified commands, so when the key is pressed, invokes all of the commands."], # pygame and tkinter
+                #"unbind": [unbind, [str], "unbind <key> - Erases the keybind."], # pygame and tkinter
+                "incrementvar": [self.create_incrementvar, [float, str, float, float, [float]], "incrementvar <value> <var_name> <minvalue> <maxvalue> <delta> - Creates an instance of incrementvar class wich can be incremented by invoking the incrementvar name and getting the output using " + self.return_char + "<var_name>."],
+                #"toggleconsole": ["toggleconsole", [], None], # pygame
+                #"togglemenu": ["togglemenu", [], None], # pygame
+                "aliases": [self.get_aliases,[], "aliases - Show a list of aliases."],
+                "plugin_load": [self.plugin_load, [str], "plugin_load <file_path> - Loads a python script."],
+                "plugin_unload": [self.plugin_unload, [str], "plugin_unload <plugin_name> - Removes the plugin commands."],
+                "wait": [self.wait, [float], "wait <seconds> - Stops the line execution for the specified time in seconds."]
             }
         else:
             self.valid_commands = {}
@@ -125,12 +196,12 @@ class Console:
         if plugin_name not in self.plugins:
             self.plugins[plugin_name] = []
 
-            def plugin_add_command(name: str, *args, **kwargs):
+            def plugin_add_command(name, *args, **kwargs):
                 self.add_command(name, *args, **kwargs)
                 self.plugins[plugin_name].append(name)
             try:
                 plugin_output = plugin.init_console(plugin_add_command, {
-                    'colors':self.colors, # should i just let the plugin add/modify/remove colors or should i just copy the dict?
+                    'colors':copy.deepcopy(self.colors),
                     'separator':self.separator,
                     'incrementvariable':IncrementVariable,
                     'check_type':check_type,
@@ -162,8 +233,8 @@ class Console:
         
         self.plugins.pop(plugin)
 
-    def add_command(self, name: str, function, is_multiple_args: bool, list_of_args: list, description: str):
-        self.valid_commands[name] = [function, is_multiple_args, list_of_args, description]
+    def add_command(self, name: str, function, list_of_args: list, description: str):
+        self.valid_commands[name] = [function, list_of_args, description]
 
     def handle_input(self, text):
         words = text.strip().split()
@@ -171,39 +242,73 @@ class Console:
         if len(words) == 0:
             return
         
+        # input: 'func x y z m n'
+        # func = command
+        # x, y, z, m, n = arguments
+        # split: func [x, y, z, m, n]
+        # output: func(*arguments) -> calls the function with all the arguments
+        # OTHER SCENARIO:
+        # command and list of arguments: func [str str [str] str str] (only the first 2 arguments are required)
+        # input: 'func x y z'
+        # output: func(x, y, z) -> runs without error
+        # OR
+        # input: 'func x y'
+        # output: func(x, y) -> runs without error
+        # OR
+        # input: 'func x y z m n'
+        # output: func(x, y, z, m, n) -> runs without error
+        # BUT NOT
+        # input: 'func x y z m n k'
+        # output: error
+
         command_word = words[0]
         words.pop(0)
+        words = parse_arguments(words)
         if command_word in self.valid_commands:
             c = self.valid_commands[command_word]
-            if c[1] == False: # is_multiple_args check
-                if len(words) != len(c[2]): # da erro se estiver faltando argumentos ou tiver muitos argumentos
-                    return ['Failure executing command "' + command_word + '" expected ' + str(len(c[2])) + ' parameters', self.colors['output']['error'], -1]
+            min_args = 0
+            for a in c[1]:
+                if type(a) == list:
+                    break
+                min_args += 1
             
+            is_multiple_args = False
+            if len(c[1]) == 1 and type(c[1][0]) == tuple:
+                is_multiple_args = True
+            
+            if len(words) < min_args: # throws an error if the arguments are not the same length as the setted
+                # [str, color, error_code=-1], if error_code = 0 then its not an error
+                return ['Failure executing command "' + command_word + '" expected at least ' + str(min_args) + ' parameter(s)', self.colors['output']['error'], -1]
+            
+            if not is_multiple_args and len(words) > len(c[1]): # if there is no optional arguments and it is missing arguments
+                return ['Failure executing command "' + command_word + '" expected ' + str(len(c[1])) + ' parameter(s) at the max.', self.colors['output']['error'], -1]
+
             checktype = None
-            for i in range(len(words)):
-                if command_word in self.valid_commands:
-                    pass
+            index = 0
+            while index != len(words):
+                if words[index].startswith(self.return_char):
+                    for ivar in self.incrementvariables.copy():
+                        if words[index] == self.return_char + ivar:
+                            words[index] = str(self.incrementvariables[ivar].get_value())
+                            index -= 1
+                index += 1
+            
+            for i in range(len(c[1])):
+                if len(words)-1 < i:
+                    break
+                
+                if type(c[1][i]) in [list,tuple]:
+                    checktype = check_type(words[i], c[1][i][0])
                 else:
-                    if words[i].startswith(self.return_char):
-                        for cc in self.incrementvariables.copy():
-                            if words[i] == self.return_char + cc:
-                                words[i] = str(self.incrementvariables[cc].get_value())
-                    
-                if c[1] == True:
-                    checktype = check_type(words[i], c[2][0])
-                else:
-                    checktype = check_type(words[i], c[2][i])
+                    checktype = check_type(words[i], c[1][i])
                     
                 if not checktype:
                     return ['Failure executing command "' + command_word + '" parameter ' + str(i+1) + ' "' + words[i] + '" is the wrong type', self.colors['output']['error'], -1]
-                
-            if c[1] == True:
-                words = [words]
-            
+
             self.set_running_command(command_word)
             return c[0](*words)
         
-        if len(words) == 0: # se for só command_word ou seja n tem arg
+        if len(words) == 0: # this slice of code only checks for stuff that is not inside the valid_commands dictionary.
             if command_word in self.aliases: # se loop de alias funciona, por que de alias nao?
                 if command_word.startswith(self.plus_char) and len(command_word) != len(self.plus_char):
                     temp = command_word
@@ -270,7 +375,7 @@ class Console:
                     return
                 
                 if self.return_char+c == command_word:
-                    out = handle_input(str(self.incrementvariables[c].get_value()))
+                    out = self.handle_input(str(self.incrementvariables[c].get_value()))
                     if out == None or out[2] == -1:
                         return # vai retornar se for erro
                     return out # se nao for erro, vai retornar a str
@@ -284,10 +389,7 @@ class Console:
         
         return ['Unknown command: "' + command_word + '"', self.colors['output']['error'], -1]
 
-    def alias(self, args: list):
-        alias_name = args[0]
-        args.pop(0)
-        
+    def alias(self, alias_name, *args): # alias a "echo b & echo c"
         alias_name_plus = None
         if alias_name.startswith(self.plus_char) and len(self.plus_char) != len(alias_name):
             alias_name_plus = alias_name
@@ -353,22 +455,27 @@ class Console:
         output = ''
         index = 0
         for command in self.valid_commands:
-            if self.valid_commands[command][3] != None:
+            if self.valid_commands[command][2] != None:
                 if index == len(self.valid_commands)-1:
-                    output += self.valid_commands[command][3]
+                    output += self.valid_commands[command][2]
                 else:
-                    output += self.valid_commands[command][3] + '\n'
+                    output += self.valid_commands[command][2] + '\n'
                 index += 1
         return output
 
     def update(self):
-        for command in self.loop_aliases_on:
-            if command in self.loop_aliases:
-                if len(self.loop_aliases[command]) == 1 and self.loop_aliases[command][0] == '':
-                    self.loop_aliases_on.remove(command)
+        index = 0
+        while index != len(self.loop_aliases_on):
+            alias = self.loop_aliases_on[index]
+            if alias in self.loop_aliases:
+                if len(self.loop_aliases[alias]) == 1 and self.loop_aliases[alias][0] == '':
+                    self.loop_aliases_on.remove(alias)
+                    self.loop_aliases.pop(alias)
+                    index -= 1
 
-                for c in self.loop_aliases[command]:
+                for c in self.loop_aliases[alias]:
                     self.execute(c)
+            index += 1
     
     def execute(self, command: str):
         out = self.handle_input(command.strip())
@@ -386,18 +493,21 @@ class Console:
 
         # todo: pass the text to pygame/tkinter window AND put the text_color
         print(text)
-
-    def create_incrementvar(value, var_name, minvalue, maxvalue, delta):
+   
+    def create_incrementvar(self, value, var_name, minvalue, maxvalue, delta=1):
         self.incrementvariables[var_name] = IncrementVariable(value, minvalue, maxvalue, delta)
 
-    def _help(self, command: str):
+    def _help(self, command: str=None):
+        if command == None:
+            return self.get_commands()
+        
         if command in self.valid_commands:
-            if self.valid_commands[command][3] == None:
+            if self.valid_commands[command][2] == None:
                 return command + ' does not have a description.'
-            return self.valid_commands[command][3]
+            return self.valid_commands[command][2]
         return command + ' does not exists.'
 
-    def echo(self, args):
+    def echo(self, *args):
         output = ''
         for i in args:
             output += str(i) + ' '
