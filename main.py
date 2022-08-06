@@ -8,6 +8,20 @@ import copy
 NAME = 'SuadoScript'
 VERSION = '0.2.0' # making of 0.2
 
+def list_files(path, ignore_hidden_dirs=True, ignore_hidden_files=True): # ignore_hidden_dirs and ignore_hidden_files only ignores those that have a dot at the start
+    output = {'files':[]}
+    for filename in os.listdir(path):
+        if os.path.isfile(os.path.join(path, filename)):
+            if ignore_hidden_files and filename.startswith('.'):
+                continue
+            output['files'].append(filename)
+        else:
+            if ignore_hidden_dirs and filename.startswith('.'):
+                continue
+            output[filename] = list_files(os.path.join(path, filename))
+    
+    return output
+
 def check_type(string: str, type):
     if type == float:
         try:
