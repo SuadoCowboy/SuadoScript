@@ -7,7 +7,7 @@ from time import sleep
 import os
 import sys
 
-NAME = 'SuadoScript Interpreter'
+NAME = 'SuadoScript'
 VERSION = '0.1.0' # beta (that was super fast)
 
 def check_type(string: str, type):
