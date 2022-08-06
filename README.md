@@ -1,3 +1,5 @@
+## Created with time and love by **Suado Cowboy**
+
 # Requirements
 Python 3.x (Python 3.10 is recommended)
 
@@ -29,9 +31,6 @@ return, but only if that is defined, here is an example: incrementvar
 creates 2 commands: <incrementvar_name> and @<incrementvar_name>,
 @<incrementvar_name> calls incrementvar.get and return the value of the
 incrementvariable.
-
-# Created with time and love by
-Suado Cowboy
 
 # Extra
 Altough It is made in python, I intend to make it in gdscript (godot language)
