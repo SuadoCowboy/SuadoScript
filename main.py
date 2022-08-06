@@ -5,7 +5,7 @@ import os
 import sys
 import copy
 
-NAME = 'SuadoScript Interpreter'
+NAME = 'SuadoScript'
 VERSION = '0.2.0' # making of 0.2
 
 def check_type(string: str, type):
