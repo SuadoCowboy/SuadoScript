@@ -166,7 +166,7 @@ class Console:
         self.valid_commands[name] = [function, is_multiple_args, list_of_args, description]
 
     def handle_input(self, text):
-        words = text.lstrip().rstrip().split()
+        words = text.strip().split()
 
         if len(words) == 0:
             return
@@ -177,7 +177,7 @@ class Console:
             c = self.valid_commands[command_word]
             if c[1] == False: # is_multiple_args check
                 if len(words) != len(c[2]): # da erro se estiver faltando argumentos ou tiver muitos argumentos
-                    return ['Failure executing command "' + command_word + '" expected ' + str(len(c[2])) + ' parameters', self.colors['output']['error']]
+                    return ['Failure executing command "' + command_word + '" expected ' + str(len(c[2])) + ' parameters', self.colors['output']['error'], -1]
             
             checktype = None
             for i in range(len(words)):
@@ -195,7 +195,7 @@ class Console:
                     checktype = check_type(words[i], c[2][i])
                     
                 if not checktype:
-                    return ['Failure executing command "' + command_word + '" parameter ' + str(i+1) + ' "' + words[i] + '" is the wrong type', self.colors['output']['error']]
+                    return ['Failure executing command "' + command_word + '" parameter ' + str(i+1) + ' "' + words[i] + '" is the wrong type', self.colors['output']['error'], -1]
                 
             if c[1] == True:
                 words = [words]
@@ -271,7 +271,7 @@ class Console:
                 
                 if self.return_char+c == command_word:
                     out = handle_input(str(self.incrementvariables[c].get_value()))
-                    if out == None or out[1] == self.colors['output']['error']: # no momento é a unica forma de eu pegar se for erro...
+                    if out == None or out[2] == -1:
                         return # vai retornar se for erro
                     return out # se nao for erro, vai retornar a str
             
@@ -282,7 +282,7 @@ class Console:
                     self.loop_aliases_on.append(command_word)
                 return
         
-        return ['Unknown command: "' + command_word + '"', self.colors['output']['error']]
+        return ['Unknown command: "' + command_word + '"', self.colors['output']['error'], -1]
 
     def alias(self, args: list):
         alias_name = args[0]
@@ -371,20 +371,17 @@ class Console:
                     self.execute(c)
     
     def execute(self, command: str):
-        out = self.handle_input(command.lstrip().rstrip())
-        if out == None:
-            return
-        
+        out = self.handle_input(command.strip())
         if type(out) == str:
             self.output_text(out)
-        else:
+        elif type(out) == list:
             self.output_text(out[0], out[1])
 
     def output_text(self, text: str, text_color: tuple=None):
-        if text == None or text.lower().rstrip().lstrip().replace('\n','') == 'none':
+        if text == None or text.lower().strip().replace('\n','') == 'none':
             return
         
-        if text_color == None :
+        if text_color == None:
             text_color = self.colors['output']['default']
 
         # todo: pass the text to pygame/tkinter window AND put the text_color
@@ -413,11 +410,11 @@ class Console:
     def split_alias(self, args: str):
         temp = ''
         for i in args:
-            temp += str(i).lstrip().rstrip() + ' '
+            temp += str(i).strip() + ' '
             
         args = temp.split(self.alias_separator)
         for i in range(len(args)):
-            args[i] = args[i].lstrip().rstrip()
+            args[i] = args[i].strip()
         
         return args
 

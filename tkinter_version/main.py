@@ -381,7 +381,7 @@ class Console:
             self.output_text(out[0], out[1])
 
     def output_text(self, text: str, text_color: tuple=None):
-        if text == None or text.lower().rstrip().lstrip().replace('\n','') == 'none':
+        if text == None or text.lower().strip().replace('\n','') == 'none':
             return
         
         if text_color == None :
