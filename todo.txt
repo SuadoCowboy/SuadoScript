@@ -1,5 +1,3 @@
-pegar as funções que eu fiz pro q&a game
-
 separar output do input, usar o modulo curses pra isso.
 
 documentação do código e/ou explicação pequena das funções e suas linhas de código.
