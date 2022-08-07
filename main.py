@@ -121,7 +121,7 @@ class IncrementVariable:
     def get_value(self):
         return self.value
 
-class Console:
+class Interpreter:
     def __init__(self, separator: str=';', cfg_path: str='./cfg', plugins_path: str='plugins', use_default_commands: bool=True):
         #self.historic = []
         #self.commandhistoricline = 0
@@ -615,7 +615,7 @@ class Console:
         for line in command.split(self.separator):
             self.execute(line)
 
-    def run(self):
+    def mainloop(self):
         self.output_text(f'{NAME} V{VERSION} (Python {sys.version})', (0,255,0))
         self.running = True
 
@@ -628,5 +628,5 @@ class Console:
             self.threads[-1].start()
 
 if __name__ == '__main__':
-    console = Console()
-    console.run()
+    interpreter = Interpreter()
+    interpreter.mainloop()
