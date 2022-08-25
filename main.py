@@ -38,28 +38,28 @@ def convert_path(path: str, convert_to: str=os.path.sep, separators: list=['\\',
         path = path.replace(i, convert_to)
     return path
 
-def parse_arguments(arguments: str, separator=' ', ignore_separator_char='"'):
+def parse_arguments(arguments: str, separator=' ', ignore_separator_char='"',remove_separator_char=True):
     output = ''
-    
     if type(arguments) == list:
         for i in arguments:
-            output += i + ' ' # its space instead of separator because sys.argv only splits with space
+            output += i + ' ' # its space instead of separator because sys.argv splits arguments by space, so this is only getting the arguments as a single one
         arguments = output[:-1]
     
     if arguments.isspace():
         return
     
-    temp = ['']
-    temp_index = 0
-    ignore = False
     # makes all the strings that have the ignore_separator_char
     # in the borders be only 1 string instead of splitting
     # example: "aaa bbbb cc" sdsd fsd -> ['aaa bbbb cc', 'sdsd','fsd']
     # separator = ';' -> "aa;b a b;c o w" -> ["aa", "b a b", "c o w"]
+    temp = ['']
+    temp_index = 0
+    ignore = False
     for index,char in enumerate(arguments):
         if char == ignore_separator_char:
             ignore = not ignore
-            continue
+            if remove_separator_char:
+                continue
         
         if char == separator and ignore == False:
             temp.append('')
@@ -72,13 +72,13 @@ def parse_arguments(arguments: str, separator=' ', ignore_separator_char='"'):
     arguments = temp
     while index != len(arguments):
         arguments[index] = arguments[index].strip()
-        if arguments[index].lstrip() == '':
+        if arguments[index] == '':
             arguments.pop(index)
             index -= 1
         index += 1
     
     if len(arguments) == 0 or len(arguments) == 1 and arguments[0] == '':
-        return
+        return ''
     
     return arguments
 
@@ -254,11 +254,13 @@ class Interpreter:
         # output: func(x, y, z, m, n) -> runs without error
         # BUT NOT
         # input: 'func x y z m n k'
-        # output: error
-
+        # output: error -> max amount of arguments reached at n
+        
         command_word = words[0]
         words.pop(0)
-        words = parse_arguments(words)
+        print(words)
+        words = parse_arguments(words,self.separator,'"',True)
+        print(words)
         if command_word in self.valid_commands:
             c = self.valid_commands[command_word]
             min_args = 0
@@ -593,7 +595,19 @@ class Interpreter:
             self.update()
 
     def handle_lines(self, command):
-        for line in command.split(self.separator):
+        #for line in command.split(self.separator):
+        #    self.execute(line)   
+        if type(command) == list:
+            for c in command:
+                handle_lines(c)
+            return
+	
+        if self.separator in command:
+            command = parse_arguments(command,self.separator,'"',True)
+        else:
+            command = [command]
+        
+        for line in command:
             self.execute(line)
 
     def mainloop(self):
