@@ -39,67 +39,48 @@ def convert_path(path: str, convert_to: str=os.path.sep, separators: list=['\\',
     return path
 
 def parse_arguments(arguments: str, separator=' ', ignore_separator_char='"'):
-        output = ''
+    output = ''
+    
+    if type(arguments) == list:
+        for i in arguments:
+            output += i + ' ' # its space instead of separator because sys.argv only splits with space
+        arguments = output[:-1]
+    
+    if arguments.isspace():
+        return
+    
+    temp = ['']
+    temp_index = 0
+    ignore = False
+    # makes all the strings that have the ignore_separator_char
+    # in the borders be only 1 string instead of splitting
+    # example: "aaa bbbb cc" sdsd fsd -> ['aaa bbbb cc', 'sdsd','fsd']
+    # separator = ';' -> "aa;b a b;c o w" -> ["aa", "b a b", "c o w"]
+    for index,char in enumerate(arguments):
+        if char == ignore_separator_char:
+            ignore = not ignore
+            continue
         
-        if type(arguments) == list:
-            for i in arguments:
-                output += i + ' ' # its space instead of separator because sys.argv only splits with space
-            arguments = output[:-1]
+        if char == separator and ignore == False:
+            temp.append('')
+            temp_index += 1
+            continue
         
-        if arguments.isspace():
-            return []
-        
-        arguments = arguments.split(separator)
-        if len(arguments) == 0 or len(arguments) == 1 and arguments[0] == '':
-            return []
-            
-        # makes all the strings that have the ignore_separator_char
-        # in the borders be only 1 string instead of splitting
-        # example: "aaa bbbb cc" sdsd fsd -> ['aaa bbbb cc', 'sdsd','fsd']
-        temp = []
-        start_index = None
-        for index,item in enumerate(arguments):
-            if start_index == None:
-                if item.startswith(ignore_separator_char):
-                    if item.endswith(ignore_separator_char):
-                        if len(item) > 2:
-                            temp.append(item[1:-1])
-                        else:
-                            temp.append(item)
-                    else:
-                        start_index = index
-                else:
-                    temp.append(item)
-            elif item.endswith(ignore_separator_char):
-                t = ''
-                for index,string in enumerate(arguments[start_index:index]):
-                    if index == 0 and string.startswith(ignore_separator_char):
-                        string = string[len(ignore_separator_char):]
-                    
-                    t += string+separator
-                t = t[:-1]
-                
-                if item.endswith(ignore_separator_char):
-                    item = item[:len(ignore_separator_char)*-1]
-                
-                temp.append(t)
-                start_index = None
-                temp[-1] += separator+item
-            
-            if len(arguments)-1 == index and start_index != None:
-                t = ''
-                for index,string in enumerate(arguments[start_index:]):
-                    if index == 0 and string.startswith(ignore_separator_char):
-                        string = string[len(ignore_separator_char):]
-                
-                    t += string+separator
-                t = t[:-1]
-                
-                temp.append(t)
-        
-        arguments = temp
-        
-        return arguments
+        temp[temp_index] += char
+    
+    index = 0
+    arguments = temp
+    while index != len(arguments):
+        arguments[index] = arguments[index].strip()
+        if arguments[index].lstrip() == '':
+            arguments.pop(index)
+            index -= 1
+        index += 1
+    
+    if len(arguments) == 0 or len(arguments) == 1 and arguments[0] == '':
+        return
+    
+    return arguments
 
 class IncrementVariable:
     def __init__(self, value: float, minvalue: float, maxvalue: float, delta: float):
