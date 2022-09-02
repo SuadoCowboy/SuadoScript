@@ -33,6 +33,6 @@ creates 2 commands: <incrementvar_name> and @<incrementvar_name>,
 incrementvariable.
 
 # Extra
-Altough It is made in python, I intend to make it in gdscript (godot language)
+Altough It is made in python, I intend to make it in gdscript (GodotEngine programming language)
 and MAYBE other languages like Java, C++, C# and JavaScript.
 All these versions would use Lua as plugin language instead of Python.
