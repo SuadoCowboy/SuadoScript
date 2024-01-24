@@ -1,3 +1,5 @@
+# I didn't know at the time how languages used to be created so I did it by myself without looking over on internet how to do most of the things
+
 ## Created with time and love by **Suado Cowboy**
 
 # Requirements
